@@ -204,10 +204,35 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  Stream<DocumentSnapshot<Map<String, dynamic>>?> get userProfileStream {
+  Stream<DocumentSnapshot<Map<String, dynamic>>?> get userProfileStream async* {
     final user = _auth.currentUser;
-    if (user == null) return Stream.value(null);
-    return _firestore
+    if (user == null) {
+      yield null;
+      return;
+    }
+
+    // Auto-migrate if doc doesn't exist but phone number is already registered
+    try {
+      final docSnap = await _firestore.collection('users').doc(user.uid).get();
+      if (!docSnap.exists) {
+        final phone = _activePhoneNumber ?? user.phoneNumber;
+        if (phone != null && phone.isNotEmpty) {
+          final oldDoc = await findUserByPhoneNumber(phone);
+          if (oldDoc != null && oldDoc.id != user.uid) {
+            final data = oldDoc.data();
+            if (data != null) {
+              data['uid'] = user.uid;
+              await _firestore.collection('users').doc(user.uid).set(data);
+              _isProfileCompletedLocally = true;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Auto-migration error: $e');
+    }
+
+    yield* _firestore
         .collection('users')
         .doc(user.uid)
         .snapshots()
