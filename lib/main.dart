@@ -69,7 +69,7 @@ class _TelegramLiteAppState extends State<TelegramLiteApp> {
                   }
 
                   final doc = profileSnapshot.data;
-                  if (doc == null || !doc.exists) {
+                  if (!_authService.hasCompletedProfile(doc)) {
                     return ProfileSetupScreen(authService: _authService);
                   }
 

@@ -43,6 +43,15 @@ class AuthService extends ChangeNotifier {
     return userCredential;
   }
 
+  bool _isProfileCompletedLocally = false;
+
+  bool hasCompletedProfile(DocumentSnapshot<Map<String, dynamic>>? doc) {
+    if (_isProfileCompletedLocally) return true;
+    if (currentUser?.displayName != null && currentUser!.displayName!.trim().isNotEmpty) return true;
+    if (doc != null && doc.exists) return true;
+    return false;
+  }
+
   // Firestore Profile Operations under users/{uid}
   Future<void> createOrUpdateUserProfile({
     required String name,
@@ -53,6 +62,7 @@ class AuthService extends ChangeNotifier {
     final user = _auth.currentUser;
     if (user == null) return;
 
+    _isProfileCompletedLocally = true;
     final docRef = _firestore.collection('users').doc(user.uid);
     final now = DateTime.now().toIso8601String();
     final cleanUsername = username.trim().replaceAll('@', '');
@@ -113,6 +123,7 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    _isProfileCompletedLocally = false;
     if (_auth.currentUser != null) {
       try {
         await _auth.signOut();
