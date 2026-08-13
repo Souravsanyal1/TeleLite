@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/story_service.dart';
@@ -220,10 +221,15 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                         Text('Video Selected', style: TextStyle(color: Colors.white70)),
                       ],
                     )
-                  : Image.file(
-                      widget.mediaFile,
-                      fit: BoxFit.contain,
-                    ),
+                  : kIsWeb
+                      ? Image.network(
+                          widget.mediaFile.path,
+                          fit: BoxFit.contain,
+                        )
+                      : Image.file(
+                          widget.mediaFile,
+                          fit: BoxFit.contain,
+                        ),
             ),
 
             // Top Bar

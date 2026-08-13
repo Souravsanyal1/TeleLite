@@ -47,7 +47,6 @@ class StoryRowWidget extends StatelessWidget {
 
   Widget _buildMyStoryButton(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),

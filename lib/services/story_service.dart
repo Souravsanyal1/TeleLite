@@ -112,17 +112,34 @@ class StoryService {
     await _firestore.collection('stories').add(storyData);
   }
 
-  Stream<List<Story>> getActiveStories() {
+  Stream<List<Story>> getActiveStories({
+    String? currentUserId,
+    List<String>? allowedOwnerIds,
+  }) {
     return _firestore
         .collection('stories')
         .snapshots()
         .map((snapshot) {
       final now = DateTime.now();
+      final allowedSet = (allowedOwnerIds ?? []).toSet();
+      if (currentUserId != null) {
+        allowedSet.add(currentUserId);
+      }
+
       final stories = snapshot.docs
           .map((doc) => Story.fromFirestore(doc))
-          .where((story) => !story.isDeleted && story.expiresAt.isAfter(now))
+          .where((story) {
+            if (story.isDeleted || !story.expiresAt.isAfter(now)) return false;
+
+            // If currentUserId is provided, enforce contact/connection privacy:
+            // User only sees stories from themselves or users they are connected with.
+            if (currentUserId != null) {
+              return allowedSet.contains(story.ownerId);
+            }
+            return true;
+          })
           .toList();
-          
+
       // Sort stories so that all stories from the same user are grouped together,
       // and within each user, ordered chronologically.
       stories.sort((a, b) {
@@ -130,7 +147,7 @@ class StoryService {
         if (ownerCompare != 0) return ownerCompare;
         return a.createdAt.compareTo(b.createdAt);
       });
-      
+
       return stories;
     });
   }

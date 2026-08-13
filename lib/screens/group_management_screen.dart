@@ -1,6 +1,12 @@
+import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/models.dart';
+import '../services/cloudinary_service.dart';
 import '../services/mock_data.dart';
 import '../theme/app_theme.dart';
 
@@ -26,6 +32,7 @@ class _GroupManagementScreenState extends State<GroupManagementScreen>
   final TextEditingController _descController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   bool _isSaving = false;
+  bool _isUploadingPhoto = false;
 
   @override
   void initState() {
@@ -35,7 +42,44 @@ class _GroupManagementScreenState extends State<GroupManagementScreen>
     _descController.text = _chat.description ?? '';
     _usernameController.text = _chat.username ?? '';
     _tabController = TabController(length: 3, vsync: this);
+    _loadCurrentUser();
   }
+
+  /// Load logged-in user's real name and photo from Firestore
+  Future<void> _loadCurrentUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      if (doc.exists && mounted) {
+        final data = doc.data()!;
+        final name = data['displayName'] ?? user.displayName ?? 'You';
+        final photo = data['photoUrl'] ?? user.photoURL ?? '';
+        final username = data['username'] ?? '';
+        // Update the 'me' member in the group's member list
+        final members = widget.dataService.getMembersForChat(_chat.id);
+        final meIdx = members.indexWhere((m) => m.id == 'me');
+        if (meIdx != -1) {
+          members[meIdx] = GroupMember(
+            id: 'me',
+            name: name,
+            avatarUrl: photo,
+            username: username.isNotEmpty ? username : null,
+            isAdmin: members[meIdx].isAdmin,
+            isOwner: members[meIdx].isOwner,
+            isOnline: true,
+          );
+        }
+        if (mounted) setState(() {});
+      }
+    } catch (e) {
+      debugPrint('_loadCurrentUser error: $e');
+    }
+  }
+
 
   @override
   void dispose() {
@@ -87,6 +131,89 @@ class _GroupManagementScreenState extends State<GroupManagementScreen>
     );
   }
 
+  /// Pick a photo (gallery) and upload to Cloudinary, then update group avatar
+  Future<void> _pickAndUploadPhoto() async {
+    if (kIsWeb) {
+      // Web: use URL dialog fallback
+      _showPhotoUrlDialog();
+      return;
+    }
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 800,
+      );
+      if (picked == null) return;
+
+      setState(() => _isUploadingPhoto = true);
+      final file = File(picked.path);
+      final url = await CloudinaryService().uploadFile(file);
+      if (url != null && mounted) {
+        widget.dataService.updateGroupInfo(_chat.id, avatarUrl: url);
+        setState(() {
+          _chat = _latestChat;
+          _isUploadingPhoto = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Photo updated!'),
+            backgroundColor: TeleTheme.primary,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        setState(() => _isUploadingPhoto = false);
+      }
+    } catch (e) {
+      setState(() => _isUploadingPhoto = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Upload failed: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showPhotoUrlDialog() {
+    final urlController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Set Photo URL'),
+        content: TextField(
+          controller: urlController,
+          decoration: const InputDecoration(
+            hintText: 'https://example.com/photo.jpg',
+            labelText: 'Image URL',
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () {
+              final url = urlController.text.trim();
+              if (url.isNotEmpty) {
+                widget.dataService.updateGroupInfo(_chat.id, avatarUrl: url);
+                setState(() => _chat = _latestChat);
+              }
+              Navigator.pop(context);
+            },
+            style: FilledButton.styleFrom(backgroundColor: TeleTheme.primary),
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openAddMembers() {
     Navigator.push(
       context,
@@ -99,29 +226,7 @@ class _GroupManagementScreenState extends State<GroupManagementScreen>
     ).then((_) => setState(() => _chat = _latestChat));
   }
 
-  void _removeMember(GroupMember member) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Remove Member'),
-        content: Text('Remove ${member.name} from this group?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              widget.dataService.removeMemberFromGroup(_chat.id, member.id);
-              setState(() => _chat = _latestChat);
-            },
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
-    );
-  }
+  // Member removal is disabled — no deleting from groups/channels.
 
   void _promoteToAdmin(GroupMember member) {
     widget.dataService.promoteToAdmin(_chat.id, member.id);
@@ -152,9 +257,14 @@ class _GroupManagementScreenState extends State<GroupManagementScreen>
         return Scaffold(
           backgroundColor: bgColor,
           appBar: AppBar(
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back,
+                  color: isDark ? Colors.white : Colors.black87),
+              onPressed: () => Navigator.pop(context),
+            ),
             title: Text(
               _chat.isChannel ? 'Channel Settings' : 'Group Settings',
-              style: TextStyle(color: textColor),
+              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
             ),
             backgroundColor: isDark ? const Color(0xFF1A2330) : Colors.white,
             bottom: TabBar(
@@ -162,10 +272,14 @@ class _GroupManagementScreenState extends State<GroupManagementScreen>
               labelColor: TeleTheme.primary,
               unselectedLabelColor: subColor,
               indicatorColor: TeleTheme.primary,
-              tabs: const [
-                Tab(icon: Icon(Icons.info_outline), text: 'Info'),
-                Tab(icon: Icon(Icons.people), text: 'Members'),
-                Tab(icon: Icon(Icons.link), text: 'Invite'),
+              tabs: [
+                const Tab(icon: Icon(Icons.info_outline), text: 'Info'),
+                Tab(
+                  icon: Icon(
+                      _chat.isChannel ? Icons.people_outline : Icons.people),
+                  text: _chat.isChannel ? 'Subscribers' : 'Members',
+                ),
+                const Tab(icon: Icon(Icons.link), text: 'Invite'),
               ],
             ),
           ),
@@ -199,61 +313,92 @@ class _GroupManagementScreenState extends State<GroupManagementScreen>
           Center(
             child: Column(
               children: [
-                Stack(
-                  children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        image: DecorationImage(
-                          image: NetworkImage(_chat.avatarUrl),
-                          fit: BoxFit.cover,
+                GestureDetector(
+                  onTap: _isUploadingPhoto ? null : _pickAndUploadPhoto,
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: _chat.isChannel
+                                ? [
+                                    const Color(0xFF0088CC),
+                                    const Color(0xFF006193)
+                                  ]
+                                : [
+                                    const Color(0xFF8A2387),
+                                    const Color(0xFFE94057)
+                                  ],
+                          ),
                         ),
-                        gradient: LinearGradient(
-                          colors: _chat.isChannel
-                              ? [
-                                  const Color(0xFF0088CC),
-                                  const Color(0xFF006193)
-                                ]
-                              : [
-                                  const Color(0xFF8A2387),
-                                  const Color(0xFFE94057)
-                                ],
+                        child: ClipOval(
+                          child: _chat.avatarUrl.isNotEmpty
+                              ? Image.network(
+                                  _chat.avatarUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Icon(
+                                    _chat.isChannel
+                                        ? Icons.campaign
+                                        : Icons.group,
+                                    color: Colors.white,
+                                    size: 48,
+                                  ),
+                                )
+                              : Icon(
+                                  _chat.isChannel
+                                      ? Icons.campaign
+                                      : Icons.group,
+                                  color: Colors.white,
+                                  size: 48,
+                                ),
                         ),
                       ),
-                    ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: GestureDetector(
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
-                                    Text('Photo upload coming soon!'),
-                                behavior: SnackBarBehavior.floating),
-                          );
-                        },
+                      // Upload spinner overlay
+                      if (_isUploadingPhoto)
+                        Positioned.fill(
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black45,
+                            ),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 3,
+                              ),
+                            ),
+                          ),
+                        ),
+                      // Camera badge
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
                         child: Container(
                           width: 34,
                           height: 34,
                           decoration: BoxDecoration(
-                            color: TeleTheme.primary,
+                            color: _isUploadingPhoto
+                                ? Colors.grey
+                                : TeleTheme.primary,
                             shape: BoxShape.circle,
                             border: Border.all(
-                                color: isDark
-                                    ? TeleTheme.bgDark
-                                    : TeleTheme.bgLight,
-                                width: 2),
+                              color: isDark
+                                  ? TeleTheme.bgDark
+                                  : TeleTheme.bgLight,
+                              width: 2,
+                            ),
                           ),
                           child: const Icon(Icons.camera_alt,
                               color: Colors.white, size: 18),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+
                 const SizedBox(height: 10),
                 Text(
                   _chat.name,
@@ -275,7 +420,7 @@ class _GroupManagementScreenState extends State<GroupManagementScreen>
           // Edit Name
           _buildInputCard(
             cardColor: cardColor,
-            icon: Icons.group,
+            icon: _chat.isChannel ? Icons.campaign : Icons.group,
             label: _chat.isChannel ? 'Channel Name' : 'Group Name',
             controller: _nameController,
             textColor: textColor,
@@ -426,23 +571,23 @@ class _GroupManagementScreenState extends State<GroupManagementScreen>
                             _roleBadge('Owner', const Color(0xFFE91E63))
                           else if (m.isAdmin)
                             _roleBadge('Admin', TeleTheme.primary),
-                          if (!m.isOwner && m.id != 'me')
+                          if (!m.isOwner && m.id != 'me' && !m.isAdmin)
                             PopupMenuButton<String>(
                               icon: Icon(Icons.more_vert, color: subColor),
                               itemBuilder: (_) => [
-                                if (!m.isAdmin)
-                                  const PopupMenuItem(
-                                      value: 'promote',
-                                      child: Text('Make Admin')),
                                 const PopupMenuItem(
-                                    value: 'remove',
-                                    child: Text('Remove',
-                                        style:
-                                            TextStyle(color: Colors.red))),
+                                    value: 'promote',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.admin_panel_settings,
+                                            color: TeleTheme.primary, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Make Admin'),
+                                      ],
+                                    )),
                               ],
                               onSelected: (v) {
                                 if (v == 'promote') _promoteToAdmin(m);
-                                if (v == 'remove') _removeMember(m);
                               },
                             ),
                         ],

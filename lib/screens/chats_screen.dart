@@ -11,6 +11,7 @@ import 'add_story_screen.dart';
 import 'create_group_screen.dart';
 import '../widgets/story_row_widget.dart';
 import '../models/story_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 
 class ChatsScreen extends StatefulWidget {
@@ -71,6 +72,12 @@ class _ChatsScreenState extends State<ChatsScreen> {
       return chat.category == _selectedCategory;
     }).toList();
 
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final allowedUserIds = <String>[
+      ...widget.dataService.contacts.map((c) => c.id),
+      ...widget.dataService.chats.map((c) => c.id),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('TeleLite'),
@@ -83,7 +90,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
               children: [
                 // Stories Row
                 StreamBuilder<List<Story>>(
-                  stream: _storyService.getActiveStories(),
+                  stream: _storyService.getActiveStories(
+                    currentUserId: currentUser?.uid,
+                    allowedOwnerIds: allowedUserIds,
+                  ),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
                       return Center(

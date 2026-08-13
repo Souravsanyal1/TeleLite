@@ -36,8 +36,8 @@ class TelegramDataService extends ChangeNotifier {
     return _chatMessages[chatId] ?? [];
   }
 
-  void sendMessage(String chatId, String text) {
-    if (text.trim().isEmpty) return;
+  void sendMessage(String chatId, String text, {String? mediaUrl}) {
+    if (text.trim().isEmpty && (mediaUrl == null || mediaUrl.isEmpty)) return;
 
     final newMsg = Message(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -48,6 +48,7 @@ class TelegramDataService extends ChangeNotifier {
           '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}',
       isSentByMe: true,
       isRead: false,
+      mediaUrl: mediaUrl,
     );
 
     if (_chatMessages.containsKey(chatId)) {
@@ -66,6 +67,17 @@ class TelegramDataService extends ChangeNotifier {
       );
     }
 
+    notifyListeners();
+  }
+
+  void clearChatMessages(String chatId) {
+    _chatMessages[chatId] = [];
+    final index = _chats.indexWhere((c) => c.id == chatId);
+    if (index != -1) {
+      _chats[index] = _chats[index].copyWith(
+        lastMessage: 'Chat history cleared',
+      );
+    }
     notifyListeners();
   }
 
