@@ -59,6 +59,15 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
         });
 
         if (result.isSuccess) {
+          if (result.errorCode == 421 && result.otpCode != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result.message),
+                duration: const Duration(seconds: 8),
+                backgroundColor: Colors.amber[800],
+              ),
+            );
+          }
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => OtpVerificationScreen(

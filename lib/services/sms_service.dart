@@ -112,6 +112,18 @@ class SmsNetBdService {
       message: smsContent,
     );
 
+    if (result.errorCode == 421) {
+      // sms.net.bd trial restriction: allow dev testing with generated OTP code
+      debugPrint('SmsNetBd Error 421 restriction. Generated test OTP: $otpCode');
+      return SmsNetBdResult(
+        isSuccess: true,
+        errorCode: 421,
+        message: 'Notice (sms.net.bd Error 421): SMS restricted to registered number until account recharge. Testing OTP: $otpCode',
+        otpCode: otpCode,
+        requestId: result.requestId,
+      );
+    }
+
     return SmsNetBdResult(
       isSuccess: result.isSuccess,
       errorCode: result.errorCode,
