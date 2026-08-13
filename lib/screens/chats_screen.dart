@@ -168,13 +168,33 @@ class _ChatsScreenState extends State<ChatsScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Start new conversation')),
-          );
-        },
-        child: const Icon(Icons.edit),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton.small(
+            heroTag: 'addStory',
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Add new story')),
+              );
+            },
+            backgroundColor: isDark ? const Color(0xFF262D36) : Colors.white,
+            elevation: 2,
+            child: Icon(Icons.camera_alt, color: isDark ? Colors.grey[400] : Colors.grey[700]),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton(
+            heroTag: 'newChat',
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Start new conversation')),
+              );
+            },
+            backgroundColor: TeleTheme.primary,
+            child: const Icon(Icons.edit, color: Colors.white),
+          ),
+        ],
       ),
     );
   }
