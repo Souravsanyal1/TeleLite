@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "658104141431",
+    "firebase_url": "https://telelite-48c4b-default-rtdb.firebaseio.com",
     "project_id": "telelite-48c4b",
     "storage_bucket": "telelite-48c4b.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.example.telegram"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "658104141431-rsqdoq1b1575deu8dale7qotv8pko6ob.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.telegram",
+            "certificate_hash": "86f0e2b9ab15216cc62fb255828c7a2a0e4d96d4"
+          }
+        },
+        {
+          "client_id": "658104141431-n54su3q2ja9pkv85m46hdkn1f7736a88.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCmxlZSjM3oh2nlute7ze1zPqaau8VnSFs"
@@ -20,7 +34,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "658104141431-n54su3q2ja9pkv85m46hdkn1f7736a88.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "658104141431-rmrb73ogrj99o0odhqcom8b4m2a0u7ne.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.telegram"
+              }
+            }
+          ]
         }
       }
     }
