@@ -5,6 +5,8 @@ import '../services/mock_data.dart';
 import '../theme/app_theme.dart';
 import 'chat_detail_screen.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
+
 class ChatsScreen extends StatefulWidget {
   final TelegramDataService dataService;
 
@@ -21,6 +23,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final currentUser = FirebaseAuth.instance.currentUser;
 
     // Filter chats based on category and search query
     final filteredChats = widget.dataService.chats.where((chat) {
@@ -38,6 +41,70 @@ class _ChatsScreenState extends State<ChatsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Telegram Lite'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0, top: 4.0, bottom: 4.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () {},
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.grey.withAlpha(50), width: 2.5),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(1.5),
+                          child: CircleAvatar(
+                            radius: 14,
+                            backgroundImage: currentUser?.photoURL != null
+                                ? NetworkImage(currentUser!.photoURL!)
+                                : const NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150') as ImageProvider,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 2,
+                        child: Container(
+                          padding: const EdgeInsets.all(1),
+                          decoration: BoxDecoration(
+                            color: TeleTheme.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).scaffoldBackgroundColor, width: 1.5),
+                          ),
+                          child: const Icon(Icons.add, size: 10, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                for (var i = 0; i < (widget.dataService.chats.length > 3 ? 3 : widget.dataService.chats.length); i++)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: TeleTheme.primary, width: 2.5),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(1.5),
+                        child: CircleAvatar(
+                          radius: 14,
+                          backgroundImage: NetworkImage(widget.dataService.chats[i].avatarUrl),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [

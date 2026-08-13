@@ -56,7 +56,6 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           'Hide your online status and read receipts from everyone, while still seeing theirs.',
       icon: Icons.visibility_off_rounded,
-      svgIconUrl: 'https://svgl.app/library/incognito.svg',
       iconBgColor: Color(0xFF673AB7),
       category: 'Privacy',
       demoType: 'stealth',
@@ -75,7 +74,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           'Unlimited posting, priority order, stealth mode, permanent view history and more.',
       icon: Icons.play_circle_fill,
-      svgIconUrl: 'https://svgl.app/library/instagram.svg',
+      svgIconUrl: 'https://cdn.simpleicons.org/instagram',
       iconBgColor: Color(0xFFFF9500),
       category: 'Sharing',
       demoType: 'stories',
@@ -85,7 +84,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           '4 GB per each document, unlimited storage for your chats and media overall.',
       icon: Icons.cloud_upload_rounded,
-      svgIconUrl: 'https://svgl.app/library/google-drive.svg',
+      svgIconUrl: 'https://cdn.simpleicons.org/googledrive',
       iconBgColor: Color(0xFFFF9500),
       category: 'Storage',
       demoType: 'cloud_storage',
@@ -112,7 +111,6 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           'Upgrade your account with business features such as location, opening hours and quick replies.',
       icon: Icons.storefront_rounded,
-      svgIconUrl: 'https://svgl.app/library/slack.svg',
       iconBgColor: Color(0xFFFF5252),
       category: 'Business',
       demoType: 'business',
@@ -122,7 +120,6 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           'View the last seen and read times of others even if you hide yours.',
       icon: Icons.visibility_off_rounded,
-      svgIconUrl: 'https://svgl.app/library/clock.svg',
       iconBgColor: Color(0xFFFF4081),
       category: 'Privacy',
       demoType: 'last_seen',
@@ -132,7 +129,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           'Ability to read the transcript of any incoming voice message.',
       icon: Icons.mic_rounded,
-      svgIconUrl: 'https://svgl.app/library/google-assistant.svg',
+      svgIconUrl: 'https://cdn.simpleicons.org/googleassistant',
       iconBgColor: Color(0xFFFF4081),
       category: 'Chat',
       demoType: 'voice_to_text',
@@ -142,7 +139,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           'No more limits on the speed with which media and documents are downloaded.',
       icon: Icons.speed_rounded,
-      svgIconUrl: 'https://svgl.app/library/cloudflare.svg',
+      svgIconUrl: 'https://cdn.simpleicons.org/cloudflare',
       iconBgColor: Color(0xFFF50057),
       category: 'Performance',
       demoType: 'speed',
@@ -152,7 +149,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           'Real-time translation of chats and channels into other languages.',
       icon: Icons.translate_rounded,
-      svgIconUrl: 'https://svgl.app/library/google-translate.svg',
+      svgIconUrl: 'https://cdn.simpleicons.org/googletranslate',
       iconBgColor: Color(0xFFE91E63),
       category: 'Translation',
       demoType: 'translation',
