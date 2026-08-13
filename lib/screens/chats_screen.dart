@@ -27,22 +27,28 @@ class _ChatsScreenState extends State<ChatsScreen> {
   String _searchQuery = '';
   final StoryService _storyService = StoryService();
 
-  Future<void> _pickImageForStory() async {
+  Future<void> _pickMediaForStory() async {
     try {
       final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      final pickedFile = await picker.pickMedia();
       if (pickedFile != null && mounted) {
+        final pathLower = pickedFile.path.toLowerCase();
+        final isVideo = pathLower.endsWith('.mp4') || pathLower.endsWith('.mov') || pathLower.endsWith('.avi');
+        
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => AddStoryScreen(imageFile: File(pickedFile.path)),
+            builder: (context) => AddStoryScreen(
+              mediaFile: File(pickedFile.path),
+              isVideo: isVideo,
+            ),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to pick image: $e')),
+          SnackBar(content: Text('Failed to pick media: $e')),
         );
       }
     }
@@ -90,7 +96,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                         alignment: Alignment.centerRight,
                         child: StoryRowWidget(
                           stories: stories,
-                          onAddStoryTap: _pickImageForStory,
+                          onAddStoryTap: _pickMediaForStory,
                         ),
                       );
                     },
@@ -169,7 +175,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
         children: [
           FloatingActionButton.small(
             heroTag: 'addStory',
-            onPressed: _pickImageForStory,
+            onPressed: _pickMediaForStory,
             backgroundColor: isDark ? const Color(0xFF262D36) : Colors.white,
             elevation: 2,
             child: Icon(Icons.camera_alt, color: isDark ? Colors.grey[400] : Colors.grey[700]),

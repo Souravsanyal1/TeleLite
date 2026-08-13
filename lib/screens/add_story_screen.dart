@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/story_service.dart';
 
-class AddStoryScreen extends StatefulWidget {
-  final File imageFile;
+import '../services/cloudinary_service.dart';
 
-  const AddStoryScreen({super.key, required this.imageFile});
+class AddStoryScreen extends StatefulWidget {
+  final File mediaFile;
+  final bool isVideo;
+
+  const AddStoryScreen({super.key, required this.mediaFile, this.isVideo = false});
 
   @override
   State<AddStoryScreen> createState() => _AddStoryScreenState();
@@ -15,21 +18,23 @@ class AddStoryScreen extends StatefulWidget {
 class _AddStoryScreenState extends State<AddStoryScreen> {
   final TextEditingController _captionController = TextEditingController();
   final StoryService _storyService = StoryService();
+  final CloudinaryService _cloudinaryService = CloudinaryService();
   bool _isPosting = false;
 
   void _postStory() async {
     setState(() => _isPosting = true);
 
     try {
-      // In a real app, you would upload widget.imageFile to Firebase Storage
-      // and get the download URL. Here we'll use a placeholder URL
-      // or a mock URL to simulate the upload process for the UI clone.
-      const dummyMediaUrl =
-          'https://images.unsplash.com/photo-1616423640778-28d1b53229bd?w=400';
+      final secureUrl = await _cloudinaryService.uploadFile(
+        widget.mediaFile,
+        isVideo: widget.isVideo,
+      );
+
+      if (secureUrl == null) throw Exception('Failed to get secure URL from Cloudinary');
 
       await _storyService.uploadStory(
-        mediaUrl: dummyMediaUrl,
-        mediaType: 'image',
+        mediaUrl: secureUrl,
+        mediaType: widget.isVideo ? 'video' : 'image',
       );
 
       if (!mounted) return;
@@ -72,10 +77,19 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
           children: [
             // Image Preview
             Center(
-              child: Image.file(
-                widget.imageFile,
-                fit: BoxFit.contain,
-              ),
+              child: widget.isVideo
+                  ? const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.videocam, size: 100, color: Colors.white54),
+                        SizedBox(height: 16),
+                        Text('Video Selected', style: TextStyle(color: Colors.white70)),
+                      ],
+                    )
+                  : Image.file(
+                      widget.mediaFile,
+                      fit: BoxFit.contain,
+                    ),
             ),
 
             // Top Bar
