@@ -155,29 +155,27 @@ class StoryService {
 
     final storyRef = _firestore.collection('stories').doc(storyId);
     
-    await _firestore.runTransaction((transaction) async {
-      final snapshot = await transaction.get(storyRef);
+    try {
+      final snapshot = await storyRef.get();
       if (!snapshot.exists) return;
 
       final data = snapshot.data() as Map<String, dynamic>;
       final viewers = List<String>.from(data['viewers'] ?? []);
-      final viewerDetails = List<Map<String, dynamic>>.from(data['viewerDetails'] ?? []);
       
       if (!viewers.contains(currentUser.uid)) {
-        viewers.add(currentUser.uid);
-        viewerDetails.add({
-          'uid': currentUser.uid,
-          'name': currentUser.displayName ?? currentUser.phoneNumber ?? 'User',
-          'avatar': currentUser.photoURL ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-          'timestamp': Timestamp.now(),
-        });
-        
-        transaction.update(storyRef, {
-          'viewers': viewers,
-          'viewerDetails': viewerDetails,
-          'viewersCount': viewers.length,
+        await storyRef.update({
+          'viewers': FieldValue.arrayUnion([currentUser.uid]),
+          'viewerDetails': FieldValue.arrayUnion([{
+            'uid': currentUser.uid,
+            'name': currentUser.displayName ?? currentUser.phoneNumber ?? 'User',
+            'avatar': currentUser.photoURL ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+            'timestamp': Timestamp.now(),
+          }]),
+          'viewersCount': FieldValue.increment(1),
         });
       }
-    });
+    } catch (e) {
+      print('Error marking story as viewed: $e');
+    }
   }
 }
