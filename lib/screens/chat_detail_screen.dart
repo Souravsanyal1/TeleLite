@@ -34,6 +34,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   bool _isSearching = false;
   String _searchQuery = '';
   bool _isUploadingAttachment = false;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.dataService.markChatAsRead(widget.chat.id);
+    });
+  }
 
   @override
   void dispose() {
@@ -871,30 +878,30 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+        child: Wrap(
+          alignment: WrapAlignment.end,
+          crossAxisAlignment: WrapCrossAlignment.end,
+          spacing: 8,
+          runSpacing: 4,
           children: [
             // Render photo/media attachment if present
             if (msg.mediaUrl != null && msg.mediaUrl!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    msg.mediaUrl!,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      padding: const EdgeInsets.all(12),
-                      color: Colors.grey.withAlpha(40),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.insert_drive_file, color: Colors.grey),
-                          SizedBox(width: 8),
-                          Text('Media attachment'),
-                        ],
-                      ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  msg.mediaUrl!,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    padding: const EdgeInsets.all(12),
+                    color: Colors.grey.withAlpha(40),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.insert_drive_file, color: Colors.grey),
+                        SizedBox(width: 8),
+                        Text('Media attachment'),
+                      ],
                     ),
                   ),
                 ),
@@ -910,30 +917,30 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ),
               ),
 
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                const Spacer(),
-                Text(
-                  msg.time,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? Colors.white54 : Colors.black45,
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    msg.time,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.white54 : Colors.black45,
+                    ),
                   ),
-                ),
-                if (isMe) ...[
-                  const SizedBox(width: 4),
-                  Icon(
-                    (msg.isRead && !widget.chat.isStealthMode)
-                        ? Icons.done_all
-                        : Icons.done,
-                    size: 14,
-                    color: TeleTheme.primary,
-                  ),
+                  if (isMe) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      (msg.isRead && !widget.chat.isStealthMode)
+                          ? Icons.done_all
+                          : Icons.done,
+                      size: 14,
+                      color: TeleTheme.primary,
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ],
         ),

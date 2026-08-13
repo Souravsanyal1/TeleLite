@@ -36,18 +36,28 @@ class TelegramDataService extends ChangeNotifier {
     return _chatMessages[chatId] ?? [];
   }
 
+  void markChatAsRead(String chatId) {
+    final index = _chats.indexWhere((c) => c.id == chatId);
+    if (index != -1 && _chats[index].unreadCount > 0) {
+      _chats[index] = _chats[index].copyWith(unreadCount: 0);
+      notifyListeners();
+    }
+  }
+
   void sendMessage(String chatId, String text, {String? mediaUrl}) {
     if (text.trim().isEmpty && (mediaUrl == null || mediaUrl.isEmpty)) return;
+
+    final nowTime =
+        '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}';
 
     final newMsg = Message(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       chatId: chatId,
       senderName: 'Me',
       text: text.trim(),
-      time:
-          '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}',
+      time: nowTime,
       isSentByMe: true,
-      isRead: false,
+      isRead: false, // Single tick (✓) initially when sent
       mediaUrl: mediaUrl,
     );
 
@@ -61,13 +71,67 @@ class TelegramDataService extends ChangeNotifier {
     if (index != -1) {
       final old = _chats[index];
       _chats[index] = old.copyWith(
-        lastMessage: text.trim(),
-        time: newMsg.time,
+        lastMessage: text.trim().isNotEmpty ? text.trim() : '📷 Photo',
+        time: nowTime,
         unreadCount: 0,
       );
     }
 
     notifyListeners();
+
+    // When the recipient views/reads the message (after 1.5s):
+    // 1. Sent messages update to isRead: true -> Changes single tick (✓) to double tick (✓✓)
+    // 2. Incoming response is added and unread count increments for badge display
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      final idx = _chats.indexWhere((c) => c.id == chatId);
+      if (idx != -1) {
+        // Mark all sent messages as read by recipient (single tick ✓ -> double tick ✓✓)
+        if (_chatMessages.containsKey(chatId)) {
+          _chatMessages[chatId] = _chatMessages[chatId]!.map((m) {
+            if (m.isSentByMe && !m.isRead) {
+              return Message(
+                id: m.id,
+                chatId: m.chatId,
+                senderName: m.senderName,
+                text: m.text,
+                time: m.time,
+                isSentByMe: m.isSentByMe,
+                isRead: true, // Recipient viewed -> Double tick (✓✓)
+                mediaUrl: m.mediaUrl,
+              );
+            }
+            return m;
+          }).toList();
+        }
+
+        final chatObj = _chats[idx];
+        final replyText =
+            'Received: "${text.trim().isNotEmpty ? text.trim() : 'Media'}" 👍';
+        final replyTime =
+            '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}';
+
+        final replyMsg = Message(
+          id: 'reply_${DateTime.now().millisecondsSinceEpoch}',
+          chatId: chatId,
+          senderName: chatObj.name,
+          text: replyText,
+          time: replyTime,
+          isSentByMe: false,
+          isRead: false,
+        );
+
+        _chatMessages[chatId] ??= [];
+        _chatMessages[chatId]!.add(replyMsg);
+
+        _chats[idx] = chatObj.copyWith(
+          lastMessage: replyText,
+          time: replyTime,
+          unreadCount: chatObj.unreadCount + 1,
+        );
+
+        notifyListeners();
+      }
+    });
   }
 
   void clearChatMessages(String chatId) {
