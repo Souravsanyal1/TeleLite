@@ -76,39 +76,24 @@ class _ChatsScreenState extends State<ChatsScreen> {
       appBar: AppBar(
         title: const Text('TeleLite'),
         toolbarHeight: 64,
-        actions: [
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: StreamBuilder<List<Story>>(
-                    stream: _storyService.getActiveStories(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        return const Center(child: Icon(Icons.error));
-                      }
-                      
-                      final stories = snapshot.data ?? [];
-                      
-                      return Container(
-                        padding: const EdgeInsets.only(left: 120), // Leave space for title
-                        alignment: Alignment.centerRight,
-                        child: StoryRowWidget(
-                          stories: stories,
-                          onAddStoryTap: _pickMediaForStory,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
       body: Column(
         children: [
+          // Stories Row
+          StreamBuilder<List<Story>>(
+            stream: _storyService.getActiveStories(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return const Center(child: Icon(Icons.error));
+              }
+              final stories = snapshot.data ?? [];
+              return StoryRowWidget(
+                stories: stories,
+                onAddStoryTap: _pickMediaForStory,
+              );
+            },
+          ),
+          
           // Search Bar
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),

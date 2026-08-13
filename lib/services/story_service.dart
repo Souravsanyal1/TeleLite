@@ -51,6 +51,8 @@ class StoryService {
   Future<void> uploadStory({
     required String mediaUrl,
     required String mediaType,
+    int? customDurationHours,
+    String? customPrivacy,
   }) async {
     final currentUser = _auth.currentUser;
     if (currentUser == null) throw Exception('Not logged in');
@@ -63,11 +65,12 @@ class StoryService {
     final userData = userDoc.data() ?? {};
     final isPremium = userData['isPremium'] == true;
     
-    int durationHours = userData['defaultDuration'] ?? 24;
+    int durationHours = customDurationHours ?? userData['defaultDuration'] ?? 24;
     // Enforce 24h for free users even if their data says otherwise
     if (!isPremium) durationHours = 24;
     
-    final privacy = userData['storyPrivacy'] ?? 'everyone';
+    final privacy = customPrivacy ?? userData['storyPrivacy'] ?? 'everyone';
+
 
     final now = DateTime.now();
     final expiresAt = now.add(Duration(hours: durationHours));
