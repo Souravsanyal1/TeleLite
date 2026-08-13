@@ -14,6 +14,7 @@ class Story {
   final int viewersCount;
   final bool isDeleted;
   final List<String> viewers;
+  final List<Map<String, dynamic>> viewerDetails;
 
   Story({
     required this.id,
@@ -29,6 +30,7 @@ class Story {
     required this.viewersCount,
     required this.isDeleted,
     required this.viewers,
+    required this.viewerDetails,
   });
 
   factory Story.fromFirestore(DocumentSnapshot doc) {
@@ -47,6 +49,7 @@ class Story {
       viewersCount: data['viewersCount'] ?? 0,
       isDeleted: data['isDeleted'] ?? false,
       viewers: List<String>.from(data['viewers'] ?? []),
+      viewerDetails: List<Map<String, dynamic>>.from(data['viewerDetails'] ?? []),
     );
   }
 
@@ -64,6 +67,7 @@ class Story {
       'viewersCount': viewersCount,
       'isDeleted': isDeleted,
       'viewers': viewers,
+      'viewerDetails': viewerDetails,
     };
   }
 }

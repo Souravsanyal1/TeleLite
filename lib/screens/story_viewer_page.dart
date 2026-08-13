@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/story_model.dart';
 import '../services/story_service.dart';
 
@@ -40,6 +42,70 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
     if (widget.stories.isNotEmpty) {
       _storyService.markStoryAsViewed(widget.stories[_currentIndex].id);
     }
+  }
+
+  void _showViewersBottomSheet(Story story) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1C1C1D),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.6,
+          maxChildSize: 0.9,
+          builder: (_, controller) {
+            final details = story.viewerDetails;
+            if (details.isEmpty) {
+              return const Center(child: Text('No views yet', style: TextStyle(color: Colors.white70)));
+            }
+            return Column(
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text('Viewers', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                ),
+                const Divider(color: Colors.white24),
+                Expanded(
+                  child: ListView.builder(
+                    controller: controller,
+                    itemCount: details.length,
+                    itemBuilder: (context, index) {
+                      final viewer = details[index];
+                      final timestamp = viewer['timestamp'] as Timestamp;
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage: NetworkImage(viewer['avatar'] ?? 'https://via.placeholder.com/150'),
+                        ),
+                        title: Text(viewer['name'] ?? 'User', style: const TextStyle(color: Colors.white)),
+                        trailing: Text(_formatTimeAgo(timestamp.toDate()), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _formatTimeAgo(DateTime time) {
+    final diff = DateTime.now().difference(time);
+    if (diff.inDays > 0) return '${diff.inDays}d ago';
+    if (diff.inHours > 0) return '${diff.inHours}h ago';
+    if (diff.inMinutes > 0) return '${diff.inMinutes}m ago';
+    return 'Just now';
   }
 
   @override
@@ -159,6 +225,41 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
               ],
             ),
           ),
+
+          // Bottom Bar (Viewers list for owner)
+          if (widget.stories.isNotEmpty &&
+              FirebaseAuth.instance.currentUser != null &&
+              widget.stories[_currentIndex].ownerId == FirebaseAuth.instance.currentUser!.uid)
+            Positioned(
+              bottom: 30,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: GestureDetector(
+                  onTap: () => _showViewersBottomSheet(widget.stories[_currentIndex]),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.visibility, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${widget.stories[_currentIndex].viewerDetails.length} Viewers',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.keyboard_arrow_up, color: Colors.white, size: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

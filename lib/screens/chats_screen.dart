@@ -77,90 +77,99 @@ class _ChatsScreenState extends State<ChatsScreen> {
         title: const Text('TeleLite'),
         toolbarHeight: 64,
       ),
-      body: Column(
-        children: [
-          // Stories Row
-          StreamBuilder<List<Story>>(
-            stream: _storyService.getActiveStories(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Error: ${snapshot.error}',
-                      style: const TextStyle(color: Colors.red, fontSize: 12),
-                      textAlign: TextAlign.center,
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                // Stories Row
+                StreamBuilder<List<Story>>(
+                  stream: _storyService.getActiveStories(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            'Error: ${snapshot.error}',
+                            style: const TextStyle(color: Colors.red, fontSize: 12),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    }
+                    final stories = snapshot.data ?? [];
+                    return StoryRowWidget(
+                      stories: stories,
+                      onAddStoryTap: _pickMediaForStory,
+                    );
+                  },
+                ),
+                
+                // Search Bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: Container(
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color:
+                          isDark ? const Color(0xFF262D36) : const Color(0xFFEBEFEF),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: TextField(
+                      onChanged: (val) => setState(() => _searchQuery = val),
+                      decoration: const InputDecoration(
+                        hintText: 'Search chats, contacts...',
+                        hintStyle: TextStyle(color: Colors.grey, fontSize: 15),
+                        prefixIcon: Icon(Icons.search, color: Colors.grey, size: 20),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: 10),
+                      ),
                     ),
                   ),
-                );
-              }
-              final stories = snapshot.data ?? [];
-              return StoryRowWidget(
-                stories: stories,
-                onAddStoryTap: _pickMediaForStory,
-              );
-            },
-          ),
-          
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: Container(
-              height: 44,
-              decoration: BoxDecoration(
-                color:
-                    isDark ? const Color(0xFF262D36) : const Color(0xFFEBEFEF),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: TextField(
-                onChanged: (val) => setState(() => _searchQuery = val),
-                decoration: const InputDecoration(
-                  hintText: 'Search chats, contacts...',
-                  hintStyle: TextStyle(color: Colors.grey, fontSize: 15),
-                  prefixIcon: Icon(Icons.search, color: Colors.grey, size: 20),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 10),
                 ),
-              ),
-            ),
-          ),
 
-          // Folder Categories
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            child: Row(
-              children: [
-                _buildCategoryChip('All Chats', ChatCategory.all),
-                _buildCategoryChip('Personal', ChatCategory.personal),
-                _buildCategoryChip('Work', ChatCategory.work),
-                _buildCategoryChip('Unread', ChatCategory.unread),
-                _buildCategoryChip('Channels', ChatCategory.channels),
+                // Folder Categories
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  child: Row(
+                    children: [
+                      _buildCategoryChip('All Chats', ChatCategory.all),
+                      _buildCategoryChip('Personal', ChatCategory.personal),
+                      _buildCategoryChip('Work', ChatCategory.work),
+                      _buildCategoryChip('Unread', ChatCategory.unread),
+                      _buildCategoryChip('Channels', ChatCategory.channels),
+                    ],
+                  ),
+                ),
+
+                const Divider(height: 1, thickness: 0.5),
               ],
             ),
           ),
 
-          const Divider(height: 1, thickness: 0.5),
-
           // Chat List
-          Expanded(
-            child: filteredChats.isEmpty
-                ? Center(
+          filteredChats.isEmpty
+              ? SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
                     child: Text(
                       'No chats found',
                       style: TextStyle(
                           color: isDark ? Colors.grey : Colors.grey[600]),
                     ),
-                  )
-                : ListView.builder(
-                    itemCount: filteredChats.length,
-                    itemBuilder: (context, index) {
+                  ),
+                )
+              : SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
                       final chat = filteredChats[index];
                       return _buildChatItem(context, chat, isDark);
                     },
+                    childCount: filteredChats.length,
                   ),
-          ),
+                ),
         ],
       ),
       floatingActionButton: Column(
