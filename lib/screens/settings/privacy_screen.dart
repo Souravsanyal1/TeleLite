@@ -15,9 +15,11 @@ class PrivacyScreen extends StatefulWidget {
 class _PrivacyScreenState extends State<PrivacyScreen> {
   bool _passcodeLock = false;
   bool _twoStepVerification = true;
+  bool _stealthMode = false;
   String _lastSeen = 'Everybody';
   String _phoneNumberVisibility = 'My Contacts';
   bool _isSaving = false;
+  bool _isPremium = false;
 
   final LocalAuthentication _localAuth = LocalAuthentication();
   final _firestore = FirebaseFirestore.instance;
@@ -39,6 +41,8 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
         setState(() {
           _phoneNumberVisibility = data['phoneNumberVisibility'] ?? 'My Contacts';
           _lastSeen = data['lastSeenVisibility'] ?? 'Everybody';
+          _stealthMode = data['stealthMode'] ?? false;
+          _isPremium = data['isPremium'] == true;
         });
       }
     } catch (e) {
@@ -149,6 +153,51 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
     );
   }
 
+  void _showPremiumPaywall() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.star, size: 64, color: Color(0xFFE94057)),
+              const SizedBox(height: 16),
+              const Text(
+                'Telegram Premium Required',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Stealth Mode is an exclusive feature for Telegram Premium subscribers.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2EA6FF),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Close', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -190,6 +239,26 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
 
           const Divider(),
           _buildHeader('PRIVACY', isDark),
+
+          SwitchListTile(
+            title: const Row(
+              children: [
+                Text('Stealth Mode '),
+                Icon(Icons.star, size: 16, color: Color(0xFFE94057)),
+              ],
+            ),
+            subtitle: const Text('Hide online status and read receipts'),
+            value: _stealthMode,
+            onChanged: (val) async {
+              if (!_isPremium) {
+                _showPremiumPaywall();
+                return;
+              }
+              setState(() => _stealthMode = val);
+              await _saveToFirestore({'stealthMode': val});
+            },
+            secondary: const Icon(Icons.visibility_off, color: Colors.indigo),
+          ),
 
           ListTile(
             leading: const Icon(Icons.phone_outlined, color: Colors.blue),

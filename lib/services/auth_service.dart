@@ -138,7 +138,9 @@ class AuthService extends ChangeNotifier {
   bool hasCompletedProfile(DocumentSnapshot<Map<String, dynamic>>? doc) {
     if (_isProfileCompletedLocally) return true;
     if (currentUser?.displayName != null &&
-        currentUser!.displayName!.trim().isNotEmpty) return true;
+        currentUser!.displayName!.trim().isNotEmpty) {
+      return true;
+    }
     if (doc != null && doc.exists) return true;
     return false;
   }

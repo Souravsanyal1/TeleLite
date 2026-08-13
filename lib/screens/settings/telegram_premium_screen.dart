@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:telegram_lite/services/auth_service.dart';
 import 'package:telegram_lite/services/mock_data.dart';
+import 'package:telegram_lite/services/payment_service.dart';
 import 'package:telegram_lite/theme/app_theme.dart';
+import 'package:confetti/confetti.dart';
 
 class PremiumFeature {
   final String title;
@@ -42,8 +44,28 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
   bool _isAnnualSelected = true;
   bool _isSubscribing = false;
   late AnimationController _starAnimController;
+  late ConfettiController _confettiController;
+  late PaymentService _paymentService;
 
   static const List<PremiumFeature> _features = [
+    PremiumFeature(
+      title: 'Stealth Mode',
+      description:
+          'Hide your online status and read receipts from everyone, while still seeing theirs.',
+      icon: Icons.visibility_off_rounded,
+      iconBgColor: Color(0xFF673AB7),
+      category: 'Privacy',
+      demoType: 'stealth',
+    ),
+    PremiumFeature(
+      title: 'Advanced Chat Folders',
+      description:
+          'Create up to 30 custom chat folders with unlimited pins.',
+      icon: Icons.folder_special_rounded,
+      iconBgColor: Color(0xFF009688),
+      category: 'Organization',
+      demoType: 'folders',
+    ),
     PremiumFeature(
       title: 'Stories',
       description:
@@ -308,106 +330,162 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       vsync: this,
       duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
+    
+    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+    
+    _paymentService = PaymentService(
+      dataService: widget.dataService,
+      authService: widget.authService,
+    );
+    _paymentService.initialize();
+    _paymentService.onPurchaseSuccess = () {
+      if (!mounted) return;
+      setState(() => _isSubscribing = false);
+      _showSuccessDialog();
+    };
   }
 
   @override
   void dispose() {
     _starAnimController.dispose();
+    _confettiController.dispose();
+    _paymentService.dispose();
     super.dispose();
   }
 
   void _handleSubscribe() async {
     setState(() => _isSubscribing = true);
-
-    await Future.delayed(const Duration(milliseconds: 1500));
-
-    widget.dataService.setPremium(true);
-    await widget.authService.updatePremiumStatus(true);
-
-    if (!mounted) return;
-    setState(() => _isSubscribing = false);
-
-    _showSuccessDialog();
+    await _paymentService.buyPremium(context);
+    
+    // Fallback if the user cancels payment, we should unset the loading state eventually,
+    // but the actual success is handled by _paymentService.onPurchaseSuccess
+    Future.delayed(const Duration(seconds: 15), () {
+      if (mounted && _isSubscribing) {
+        setState(() => _isSubscribing = false);
+      }
+    });
   }
 
   void _showSuccessDialog() {
+    _confettiController.play();
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return Dialog(
-          backgroundColor: const Color(0xFF1C2733),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF8A2387),
-                        Color(0xFFE94057),
-                        Color(0xFFF27121)
-                      ],
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1C2733).withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.5),
+                      blurRadius: 20,
+                      spreadRadius: 5,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFE94057).withAlpha(128),
-                        blurRadius: 20,
-                        spreadRadius: 4,
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF8A2387),
+                            Color(0xFFE94057),
+                            Color(0xFFF27121)
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFE94057).withAlpha(128),
+                            blurRadius: 20,
+                            spreadRadius: 4,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: const Icon(Icons.star, size: 48, color: Colors.white),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Welcome to Telegram Premium!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'You have unlocked all 26 exclusive premium features, unlimited storage, custom badges, and high-speed downloads.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[400],
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2EA6FF),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      child: const Icon(Icons.star, size: 48, color: Colors.white),
                     ),
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      'Awesome!',
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Welcome to Telegram Premium!',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'You have unlocked all exclusive premium features, unlimited storage, custom badges, and high-speed downloads.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[300],
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2EA6FF),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        onPressed: () {
+                          _confettiController.stop();
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          'Awesome!',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Positioned(
+                top: -50,
+                child: ConfettiWidget(
+                  confettiController: _confettiController,
+                  blastDirectionality: BlastDirectionality.explosive,
+                  shouldLoop: true,
+                  colors: const [
+                    Colors.green,
+                    Colors.blue,
+                    Colors.pink,
+                    Colors.orange,
+                    Colors.purple
+                  ],
+                  createParticlePath: (size) {
+                    final path = Path();
+                    path.addOval(Rect.fromCircle(center: Offset.zero, radius: 5));
+                    return path;
+                  },
+                ),
+              ),
+            ],
           ),
         );
       },
