@@ -4,11 +4,13 @@ import 'package:telegram_lite/services/mock_data.dart';
 import 'package:telegram_lite/services/payment_service.dart';
 import 'package:telegram_lite/theme/app_theme.dart';
 import 'package:confetti/confetti.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class PremiumFeature {
   final String title;
   final String description;
-  final IconData icon;
+  final IconData? icon;
+  final String? svgIconUrl;
   final Widget? customIconWidget;
   final Color iconBgColor;
   final String category;
@@ -17,7 +19,8 @@ class PremiumFeature {
   const PremiumFeature({
     required this.title,
     required this.description,
-    required this.icon,
+    this.icon,
+    this.svgIconUrl,
     this.customIconWidget,
     required this.iconBgColor,
     required this.category,
@@ -53,6 +56,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           'Hide your online status and read receipts from everyone, while still seeing theirs.',
       icon: Icons.visibility_off_rounded,
+      svgIconUrl: 'https://svgl.app/library/incognito.svg',
       iconBgColor: Color(0xFF673AB7),
       category: 'Privacy',
       demoType: 'stealth',
@@ -71,6 +75,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           'Unlimited posting, priority order, stealth mode, permanent view history and more.',
       icon: Icons.play_circle_fill,
+      svgIconUrl: 'https://svgl.app/library/instagram.svg',
       iconBgColor: Color(0xFFFF9500),
       category: 'Sharing',
       demoType: 'stories',
@@ -80,6 +85,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           '4 GB per each document, unlimited storage for your chats and media overall.',
       icon: Icons.cloud_upload_rounded,
+      svgIconUrl: 'https://svgl.app/library/google-drive.svg',
       iconBgColor: Color(0xFFFF9500),
       category: 'Storage',
       demoType: 'cloud_storage',
@@ -106,6 +112,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           'Upgrade your account with business features such as location, opening hours and quick replies.',
       icon: Icons.storefront_rounded,
+      svgIconUrl: 'https://svgl.app/library/slack.svg',
       iconBgColor: Color(0xFFFF5252),
       category: 'Business',
       demoType: 'business',
@@ -115,6 +122,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           'View the last seen and read times of others even if you hide yours.',
       icon: Icons.visibility_off_rounded,
+      svgIconUrl: 'https://svgl.app/library/clock.svg',
       iconBgColor: Color(0xFFFF4081),
       category: 'Privacy',
       demoType: 'last_seen',
@@ -124,6 +132,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           'Ability to read the transcript of any incoming voice message.',
       icon: Icons.mic_rounded,
+      svgIconUrl: 'https://svgl.app/library/google-assistant.svg',
       iconBgColor: Color(0xFFFF4081),
       category: 'Chat',
       demoType: 'voice_to_text',
@@ -133,6 +142,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           'No more limits on the speed with which media and documents are downloaded.',
       icon: Icons.speed_rounded,
+      svgIconUrl: 'https://svgl.app/library/cloudflare.svg',
       iconBgColor: Color(0xFFF50057),
       category: 'Performance',
       demoType: 'speed',
@@ -142,14 +152,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       description:
           'Real-time translation of chats and channels into other languages.',
       icon: Icons.translate_rounded,
-      customIconWidget: Text(
-        '文A',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
-      ),
+      svgIconUrl: 'https://svgl.app/library/google-translate.svg',
       iconBgColor: Color(0xFFE91E63),
       category: 'Translation',
       demoType: 'translation',
@@ -535,7 +538,18 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                         ),
                         child: Center(
                           child: feature.customIconWidget ??
-                              Icon(feature.icon, color: Colors.white, size: 28),
+                              (feature.svgIconUrl != null
+                                  ? SvgPicture.network(
+                                      feature.svgIconUrl!,
+                                      width: 28,
+                                      height: 28,
+                                      colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                                      placeholderBuilder: (BuildContext context) => Container(
+                                        padding: const EdgeInsets.all(4),
+                                        child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                      ),
+                                    )
+                                  : Icon(feature.icon, color: Colors.white, size: 28)),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -1127,11 +1141,19 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                               ),
                               child: Center(
                                 child: feat.customIconWidget ??
-                                    Icon(
-                                      feat.icon,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
+                                    (feat.svgIconUrl != null
+                                        ? SvgPicture.network(
+                                            feat.svgIconUrl!,
+                                            width: 20,
+                                            height: 20,
+                                            colorFilter: const ColorFilter.mode(
+                                                Colors.white, BlendMode.srcIn),
+                                          )
+                                        : Icon(
+                                            feat.icon,
+                                            color: Colors.white,
+                                            size: 20,
+                                          )),
                               ),
                             ),
                             title: Text(
