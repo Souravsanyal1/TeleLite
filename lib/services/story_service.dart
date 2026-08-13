@@ -96,12 +96,12 @@ class StoryService {
   Stream<List<Story>> getActiveStories() {
     return _firestore
         .collection('stories')
-        .where('isDeleted', isEqualTo: false)
         .where('expiresAt', isGreaterThan: Timestamp.fromDate(DateTime.now()))
         .snapshots()
         .map((snapshot) {
       return snapshot.docs
           .map((doc) => Story.fromFirestore(doc))
+          .where((story) => !story.isDeleted)
           .toList();
     });
   }

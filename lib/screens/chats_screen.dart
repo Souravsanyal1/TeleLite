@@ -84,7 +84,16 @@ class _ChatsScreenState extends State<ChatsScreen> {
             stream: _storyService.getActiveStories(),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return const Center(child: Icon(Icons.error));
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
               }
               final stories = snapshot.data ?? [];
               return StoryRowWidget(
