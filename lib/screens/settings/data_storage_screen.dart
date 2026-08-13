@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../theme/app_theme.dart';
 
 class DataStorageScreen extends StatefulWidget {
@@ -14,6 +15,23 @@ class _DataStorageScreenState extends State<DataStorageScreen> {
   bool _autoPhotosWifi = true;
   bool _autoVideosWifi = true;
   double _cacheSizeMb = 142.5;
+
+  @override
+  void initState() {
+    super.initState();
+    _requestStoragePermission();
+  }
+
+  Future<void> _requestStoragePermission() async {
+    final status = await Permission.storage.status;
+    final photosStatus = await Permission.photos.status;
+    if (!status.isGranted && !photosStatus.isGranted) {
+      final res = await Permission.storage.request();
+      if (!res.isGranted) {
+        await Permission.photos.request();
+      }
+    }
+  }
 
   void _clearCache() {
     showDialog(

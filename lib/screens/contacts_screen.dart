@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../models/models.dart';
 import '../services/auth_service.dart';
 import '../services/mock_data.dart';
@@ -25,6 +26,35 @@ class _ContactsScreenState extends State<ContactsScreen> {
   bool _isSearching = false;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _requestContactsPermission();
+  }
+
+  Future<void> _requestContactsPermission() async {
+    final status = await Permission.contacts.status;
+    if (!status.isGranted) {
+      final result = await Permission.contacts.request();
+      if (!mounted) return;
+      if (result.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Contacts permission granted!')),
+        );
+      } else if (result.isPermanentlyDenied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Contacts permission denied'),
+            action: SnackBarAction(
+              label: 'Settings',
+              onPressed: () => openAppSettings(),
+            ),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {

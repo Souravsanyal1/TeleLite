@@ -70,7 +70,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         widget.contact?.avatarUrl ??
         'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
     final isOnline = widget.chat?.isOnline ?? widget.contact?.isOnline ?? false;
-    final phone = widget.contact?.phone.isNotEmpty == true
+    final rawPhone = widget.contact?.phone.isNotEmpty == true
         ? widget.contact!.phone
         : '+880 1712 345678';
     final username = '@${name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')}';
@@ -79,11 +79,46 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         : 'Hey there! I am using Telegram Lite.';
     final isVerified = widget.chat?.isVerified ?? false;
 
+    // Check target UID if available from chat or contact ID
+    final targetUid = widget.chat?.id ?? widget.contact?.id;
+
+    if (targetUid != null && targetUid.isNotEmpty) {
+      return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance.collection('users').doc(targetUid).snapshots(),
+        builder: (context, snapshot) {
+          final data = snapshot.data?.data();
+          final visibility = data?['phoneNumberVisibility'] ?? 'My Contacts';
+          final dbPhone = data?['phoneNumber'] ?? rawPhone;
+          // Hide number unless user explicitly selected 'Everybody'
+          final displayPhone = (visibility == 'Everybody') ? dbPhone : 'Hidden';
+
+          return _buildProfileBody(
+            context: context,
+            name: data?['displayName'] ?? name,
+            subtitle: isOnline ? 'online' : 'last seen recently',
+            phone: displayPhone,
+            username: data?['username'] != null ? '@${data!['username']}' : username,
+            bio: data?['bio'] ?? bio,
+            photoUrl: data?['photoUrl'] ?? photoUrl,
+            isOnline: data?['isOnline'] ?? isOnline,
+            isVerified: isVerified,
+            isCurrentUser: false,
+            isDark: isDark,
+          );
+        },
+      );
+    }
+
+    // Default fallback for mock contacts without Firestore document:
+    // Phone is hidden unless privacy setting is 'Everybody'
+    const defaultVisibility = 'My Contacts'; // Default is hidden
+    final displayPhone = (defaultVisibility == 'Everybody') ? rawPhone : 'Hidden';
+
     return _buildProfileBody(
       context: context,
       name: name,
       subtitle: isOnline ? 'online' : 'last seen recently',
-      phone: phone,
+      phone: displayPhone,
       username: username,
       bio: bio,
       photoUrl: photoUrl,

@@ -1,4 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../theme/app_theme.dart';
 
 class PrivacyScreen extends StatefulWidget {
@@ -13,32 +17,132 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
   bool _twoStepVerification = true;
   String _lastSeen = 'Everybody';
   String _phoneNumberVisibility = 'My Contacts';
+  bool _isSaving = false;
 
-  void _showPrivacyPicker(String title, String currentVal, Function(String) onSelect) {
+  final LocalAuthentication _localAuth = LocalAuthentication();
+  final _firestore = FirebaseFirestore.instance;
+  final _currentUser = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricPermission();
+    _loadPrivacySettings();
+  }
+
+  Future<void> _loadPrivacySettings() async {
+    if (_currentUser == null) return;
+    try {
+      final doc = await _firestore.collection('users').doc(_currentUser!.uid).get();
+      if (doc.exists && mounted) {
+        final data = doc.data()!;
+        setState(() {
+          _phoneNumberVisibility = data['phoneNumberVisibility'] ?? 'My Contacts';
+          _lastSeen = data['lastSeenVisibility'] ?? 'Everybody';
+        });
+      }
+    } catch (e) {
+      debugPrint('_loadPrivacySettings error: $e');
+    }
+  }
+
+  Future<void> _saveToFirestore(Map<String, dynamic> fields) async {
+    if (_currentUser == null) return;
+    setState(() => _isSaving = true);
+    try {
+      await _firestore
+          .collection('users')
+          .doc(_currentUser!.uid)
+          .set(fields, SetOptions(merge: true));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _checkBiometricPermission() async {
+    final status = await Permission.sensors.status;
+    if (status.isDenied) await Permission.sensors.request();
+  }
+
+  Future<void> _handlePasscodeToggle(bool enabled) async {
+    if (enabled) {
+      try {
+        final bool canCheck = await _localAuth.canCheckBiometrics;
+        final bool isSupported = await _localAuth.isDeviceSupported();
+        if (!canCheck && !isSupported) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Biometrics not available on this device')),
+            );
+          }
+          setState(() => _passcodeLock = false);
+          return;
+        }
+        final bool didAuth = await _localAuth.authenticate(
+          localizedReason: 'Authenticate to enable Passcode & Biometric lock',
+          options: const AuthenticationOptions(biometricOnly: false, stickyAuth: true),
+        );
+        if (!mounted) return;
+        if (didAuth) {
+          setState(() => _passcodeLock = true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Biometric lock enabled!')),
+          );
+        } else {
+          setState(() => _passcodeLock = false);
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Biometric error: ${e.toString()}')),
+        );
+      }
+    } else {
+      setState(() => _passcodeLock = false);
+    }
+  }
+
+  void _showPrivacyPicker(
+    String title,
+    String currentVal,
+    Future<void> Function(String) onSelect,
+  ) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              ...['Everybody', 'My Contacts', 'Nobody'].map((opt) {
-                return ListTile(
-                  title: Text(opt),
-                  trailing: currentVal == opt ? const Icon(Icons.check, color: TeleTheme.primary) : null,
-                  onTap: () {
-                    onSelect(opt);
-                    Navigator.pop(context);
-                  },
-                );
-              }),
-            ],
+      builder: (ctx) {
+        return Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(title,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                ...['Everybody', 'My Contacts', 'Nobody'].map((opt) {
+                  return ListTile(
+                    title: Text(opt),
+                    trailing: currentVal == opt
+                        ? const Icon(Icons.check, color: TeleTheme.primary)
+                        : null,
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      await onSelect(opt);
+                    },
+                  );
+                }),
+              ],
+            ),
           ),
         );
       },
@@ -52,6 +156,19 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Privacy and Security'),
+        actions: [
+          if (_isSaving)
+            const Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: Center(
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                ),
+              ),
+            ),
+        ],
       ),
       body: ListView(
         children: [
@@ -67,34 +184,65 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
             title: const Text('Passcode Lock'),
             subtitle: const Text('Lock app with PIN or Biometrics'),
             value: _passcodeLock,
-            onChanged: (val) => setState(() => _passcodeLock = val),
+            onChanged: (val) => _handlePasscodeToggle(val),
             secondary: const Icon(Icons.lock_outline, color: Colors.amber),
           ),
 
           const Divider(),
           _buildHeader('PRIVACY', isDark),
+
           ListTile(
             leading: const Icon(Icons.phone_outlined, color: Colors.blue),
             title: const Text('Phone Number'),
             subtitle: Text(_phoneNumberVisibility),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              _showPrivacyPicker('Who can see my phone number?', _phoneNumberVisibility, (val) {
-                setState(() => _phoneNumberVisibility = val);
-              });
+              final messenger = ScaffoldMessenger.of(context);
+              _showPrivacyPicker(
+                'Who can see my phone number?',
+                _phoneNumberVisibility,
+                (val) async {
+                  setState(() => _phoneNumberVisibility = val);
+                  await _saveToFirestore({'phoneNumberVisibility': val});
+                  if (mounted) {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Phone number visibility set to "$val"'),
+                        backgroundColor: TeleTheme.primary,
+                      ),
+                    );
+                  }
+                },
+              );
             },
           ),
+
           ListTile(
             leading: const Icon(Icons.access_time, color: Colors.purple),
             title: const Text('Last Seen & Online'),
             subtitle: Text(_lastSeen),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              _showPrivacyPicker('Who can see my last seen time?', _lastSeen, (val) {
-                setState(() => _lastSeen = val);
-              });
+              final messenger = ScaffoldMessenger.of(context);
+              _showPrivacyPicker(
+                'Who can see my last seen time?',
+                _lastSeen,
+                (val) async {
+                  setState(() => _lastSeen = val);
+                  await _saveToFirestore({'lastSeenVisibility': val});
+                  if (mounted) {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Last seen visibility set to "$val"'),
+                        backgroundColor: TeleTheme.primary,
+                      ),
+                    );
+                  }
+                },
+              );
             },
           ),
+
           ListTile(
             leading: const Icon(Icons.block, color: Colors.redAccent),
             title: const Text('Blocked Users'),

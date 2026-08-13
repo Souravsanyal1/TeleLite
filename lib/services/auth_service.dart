@@ -158,6 +158,7 @@ class AuthService extends ChangeNotifier {
       'bio': bio?.trim() ?? 'Hey there! I am using TeleLite.',
       'lastSeen': now,
       'isOnline': true,
+      'phoneNumberVisibility': 'My Contacts',
     };
 
     try {

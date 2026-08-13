@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../theme/app_theme.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -17,6 +18,57 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   bool _badgeCounter = true;
 
   @override
+  void initState() {
+    super.initState();
+    _requestNotificationPermission();
+  }
+
+  Future<void> _requestNotificationPermission() async {
+    final status = await Permission.notification.status;
+    if (!status.isGranted) {
+      final result = await Permission.notification.request();
+      if (!mounted) return;
+      if (result.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notification permission granted!')),
+        );
+      } else if (result.isPermanentlyDenied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Notification permission denied'),
+            action: SnackBarAction(
+              label: 'Settings',
+              onPressed: () => openAppSettings(),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _onToggleNotification(Function() toggle) async {
+    final status = await Permission.notification.status;
+    if (!status.isGranted) {
+      final req = await Permission.notification.request();
+      if (!req.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Notification permission required'),
+              action: SnackBarAction(
+                label: 'Enable',
+                onPressed: () => openAppSettings(),
+              ),
+            ),
+          );
+        }
+        return;
+      }
+    }
+    setState(toggle);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -31,21 +83,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             title: const Text('Private Chats'),
             subtitle: const Text('Tap to customize sound & alerts'),
             value: _privateChats,
-            onChanged: (val) => setState(() => _privateChats = val),
+            onChanged: (val) => _onToggleNotification(() => _privateChats = val),
             secondary: const Icon(Icons.person_outline, color: TeleTheme.primary),
           ),
           SwitchListTile(
             title: const Text('Group Chats'),
             subtitle: const Text('Tap to customize sound & alerts'),
             value: _groupChats,
-            onChanged: (val) => setState(() => _groupChats = val),
+            onChanged: (val) => _onToggleNotification(() => _groupChats = val),
             secondary: const Icon(Icons.group_outlined, color: Colors.amber),
           ),
           SwitchListTile(
             title: const Text('Channels'),
             subtitle: const Text('Tap to customize sound & alerts'),
             value: _channels,
-            onChanged: (val) => setState(() => _channels = val),
+            onChanged: (val) => _onToggleNotification(() => _channels = val),
             secondary: const Icon(Icons.campaign_outlined, color: Colors.purple),
           ),
 
@@ -54,13 +106,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           SwitchListTile(
             title: const Text('In-App Sounds'),
             value: _inAppSound,
-            onChanged: (val) => setState(() => _inAppSound = val),
+            onChanged: (val) => _onToggleNotification(() => _inAppSound = val),
             secondary: const Icon(Icons.volume_up_outlined, color: Colors.cyan),
           ),
           SwitchListTile(
             title: const Text('In-App Vibration'),
             value: _inAppVibrate,
-            onChanged: (val) => setState(() => _inAppVibrate = val),
+            onChanged: (val) => _onToggleNotification(() => _inAppVibrate = val),
             secondary: const Icon(Icons.vibration_outlined, color: Colors.teal),
           ),
 
@@ -70,7 +122,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             title: const Text('Include Unread Messages'),
             subtitle: const Text('Show unread message badge on app icon'),
             value: _badgeCounter,
-            onChanged: (val) => setState(() => _badgeCounter = val),
+            onChanged: (val) => _onToggleNotification(() => _badgeCounter = val),
             secondary: const Icon(Icons.mark_chat_unread_outlined, color: Colors.redAccent),
           ),
         ],
