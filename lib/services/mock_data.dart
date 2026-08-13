@@ -64,7 +64,11 @@ class TelegramDataService extends ChangeNotifier {
         isSecret: oldChat.isSecret,
         isVerified: oldChat.isVerified,
         isPinned: oldChat.isPinned,
+        isPremium: oldChat.isPremium,
         isStealthMode: oldChat.isStealthMode,
+        disableSharing: oldChat.disableSharing,
+        profileColor: oldChat.profileColor,
+        emojiStatus: oldChat.emojiStatus,
         category: oldChat.category,
       );
     }
@@ -110,6 +114,9 @@ class TelegramDataService extends ChangeNotifier {
       time: 'Just now',
       isSecret: true,
       isOnline: true,
+      isPremium: _isPremium,
+      isStealthMode: false,
+      disableSharing: false,
       category: ChatCategory.personal,
     );
     _chats.insert(0, newChat);

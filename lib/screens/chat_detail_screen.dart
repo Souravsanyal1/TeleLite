@@ -249,6 +249,23 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     ),
                   ),
                 ),
+                if (widget.chat.disableSharing)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    color: isDark ? Colors.black26 : Colors.black12,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.security, size: 14, color: Colors.grey),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Sharing & Forwarding restricted',
+                          style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
 
                 // Message List
                 Expanded(
@@ -276,11 +293,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Widget _buildMessageBubble(Message msg, bool isDark) {
     final isMe = msg.isSentByMe;
     
-    final bubbleColor = isMe
-        ? (isDark ? TeleTheme.sentBubbleDark : TeleTheme.sentBubbleLight)
+    final receivedColor = widget.chat.profileColor != null
+        ? Color(int.parse(widget.chat.profileColor!.replaceFirst('#', '0xFF')))
         : (isDark ? TeleTheme.receivedBubbleDark : TeleTheme.receivedBubbleLight);
 
-    final textColor = isDark ? Colors.white : Colors.black87;
+    final bubbleColor = isMe
+        ? (isDark ? TeleTheme.sentBubbleDark : TeleTheme.sentBubbleLight)
+        : receivedColor;
+
+    final textColor = isMe
+        ? (isDark ? Colors.white : Colors.black87)
+        : (widget.chat.profileColor != null ? Colors.white : (isDark ? Colors.white : Colors.black87));
 
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,

@@ -68,6 +68,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             username: username,
             bio: bio,
             photoUrl: photoUrl,
+            emojiStatus: data?['emojiStatus'],
+            profileColor: data?['profileColor'],
             isOnline: true,
             isVerified: true,
             isCurrentUser: true,
@@ -122,6 +124,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 data?['username'] != null ? '@${data!['username']}' : username,
             bio: data?['bio'] ?? bio,
             photoUrl: data?['photoUrl'] ?? photoUrl,
+            emojiStatus: data?['emojiStatus'] ?? widget.chat?.emojiStatus ?? widget.contact?.emojiStatus,
+            profileColor: data?['profileColor'] ?? widget.chat?.profileColor ?? widget.contact?.profileColor,
             isOnline: finalIsOnline,
             isVerified: isVerified,
             isCurrentUser: false,
@@ -145,6 +149,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       username: username,
       bio: bio,
       photoUrl: photoUrl,
+      emojiStatus: widget.chat?.emojiStatus ?? widget.contact?.emojiStatus,
+      profileColor: widget.chat?.profileColor ?? widget.contact?.profileColor,
       isOnline: isOnline,
       isVerified: isVerified,
       isCurrentUser: false,
@@ -160,6 +166,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     required String username,
     required String bio,
     required String photoUrl,
+    String? emojiStatus,
+    String? profileColor,
     required bool isOnline,
     required bool isVerified,
     required bool isCurrentUser,
@@ -208,10 +216,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         MaterialPageRoute(
                           builder: (context) => EditProfileScreen(
                             authService: widget.authService!,
+                            dataService: widget.dataService!,
+                            isPremium: widget.dataService?.isPremium ?? false,
                             currentName: name,
                             currentUsername: username,
                             currentBio: bio,
                             currentPhotoUrl: photoUrl,
+                            currentProfileColor: profileColor,
+                            currentEmojiStatus: emojiStatus,
                           ),
                         ),
                       );
@@ -323,6 +335,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 padding: EdgeInsets.only(left: 6),
                                 child: Icon(Icons.verified,
                                     color: Colors.lightBlueAccent, size: 22),
+                              ),
+                            if (emojiStatus != null)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: Text(
+                                  emojiStatus,
+                                  style: const TextStyle(fontSize: 22),
+                                ),
                               ),
                             // Premium Badge
                             StreamBuilder<

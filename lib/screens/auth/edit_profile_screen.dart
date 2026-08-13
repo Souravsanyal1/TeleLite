@@ -1,21 +1,31 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
+import '../../services/mock_data.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/premium_blocker.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final AuthService authService;
+  final TelegramDataService dataService;
   final String currentName;
   final String currentUsername;
   final String currentBio;
   final String currentPhotoUrl;
+  final bool isPremium;
+  final String? currentProfileColor;
+  final String? currentEmojiStatus;
 
   const EditProfileScreen({
     super.key,
     required this.authService,
+    required this.dataService,
     required this.currentName,
     required this.currentUsername,
     required this.currentBio,
     required this.currentPhotoUrl,
+    required this.isPremium,
+    this.currentProfileColor,
+    this.currentEmojiStatus,
   });
 
   @override
@@ -28,6 +38,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _usernameController;
   late TextEditingController _bioController;
   late String _selectedAvatarUrl;
+  String? _selectedProfileColor;
+  String? _selectedEmojiStatus;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -43,6 +55,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _usernameController = TextEditingController(text: initialUsername);
     _bioController = TextEditingController(text: widget.currentBio);
     _selectedAvatarUrl = widget.currentPhotoUrl;
+    _selectedProfileColor = widget.currentProfileColor;
+    _selectedEmojiStatus = widget.currentEmojiStatus;
   }
 
   @override
@@ -120,6 +134,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         username: newUsername,
         bio: _bioController.text.trim(),
         photoUrl: _selectedAvatarUrl,
+        profileColor: _selectedProfileColor,
+        emojiStatus: _selectedEmojiStatus,
       );
 
       if (mounted) {
@@ -263,10 +279,136 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   maxLength: 70,
                 ),
+                const SizedBox(height: 16),
+
+                // Premium Features Section
+                const Divider(),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'Premium Features',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: TeleTheme.primary,
+                    ),
+                  ),
+                ),
+                
+                // Profile Color
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor: _selectedProfileColor != null
+                        ? Color(int.parse(_selectedProfileColor!.replaceFirst('#', '0xFF')))
+                        : TeleTheme.primary,
+                    child: const Icon(Icons.palette, color: Colors.white, size: 20),
+                  ),
+                  title: const Text('Name Color'),
+                  subtitle: Text(_selectedProfileColor ?? 'Default'),
+                  trailing: const Icon(Icons.star, color: Color(0xFFE94057), size: 20),
+                  onTap: () {
+                    if (!widget.isPremium) {
+                      showPremiumRequiredDialog(context, 'Name and Profile Colors', widget.dataService, widget.authService);
+                      return;
+                    }
+                    _showColorPicker();
+                  },
+                ),
+
+                // Emoji Status
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xFF4CAF50),
+                    child: Icon(Icons.emoji_emotions, color: Colors.white, size: 20),
+                  ),
+                  title: const Text('Emoji Status'),
+                  subtitle: Text(_selectedEmojiStatus ?? 'None'),
+                  trailing: const Icon(Icons.star, color: Color(0xFFE94057), size: 20),
+                  onTap: () {
+                    if (!widget.isPremium) {
+                      showPremiumRequiredDialog(context, 'Emoji Statuses', widget.dataService, widget.authService);
+                      return;
+                    }
+                    _showEmojiPicker();
+                  },
+                ),
+                
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showColorPicker() {
+    final colors = ['#2196F3', '#E91E63', '#4CAF50', '#FF9800', '#9C27B0', '#009688', '#F44336'];
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Choose Name Color'),
+        content: Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: colors.map((colorHex) {
+            final color = Color(int.parse(colorHex.replaceFirst('#', '0xFF')));
+            return GestureDetector(
+              onTap: () {
+                setState(() => _selectedProfileColor = colorHex);
+                Navigator.pop(context);
+              },
+              child: CircleAvatar(
+                backgroundColor: color,
+                radius: 24,
+                child: _selectedProfileColor == colorHex
+                    ? const Icon(Icons.check, color: Colors.white)
+                    : null,
+              ),
+            );
+          }).toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() => _selectedProfileColor = null);
+              Navigator.pop(context);
+            },
+            child: const Text('Reset to Default'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEmojiPicker() {
+    final emojis = ['🔥', '✨', '💤', '🎓', '💼', '🌴', '🚗', '🍔', '🎉', '🏆', '🎮', '🎧'];
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Choose Emoji Status'),
+        content: Wrap(
+          spacing: 16,
+          runSpacing: 16,
+          children: emojis.map((emoji) {
+            return GestureDetector(
+              onTap: () {
+                setState(() => _selectedEmojiStatus = emoji);
+                Navigator.pop(context);
+              },
+              child: Text(emoji, style: const TextStyle(fontSize: 32)),
+            );
+          }).toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() => _selectedEmojiStatus = null);
+              Navigator.pop(context);
+            },
+            child: const Text('Remove Status'),
+          ),
+        ],
       ),
     );
   }

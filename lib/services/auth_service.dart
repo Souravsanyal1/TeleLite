@@ -151,6 +151,8 @@ class AuthService extends ChangeNotifier {
     required String username,
     String? bio,
     String? photoUrl,
+    String? profileColor,
+    String? emojiStatus,
   }) async {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -172,6 +174,9 @@ class AuthService extends ChangeNotifier {
       'isOnline': true,
       'phoneNumberVisibility': 'My Contacts',
     };
+
+    if (profileColor != null) data['profileColor'] = profileColor;
+    if (emojiStatus != null) data['emojiStatus'] = emojiStatus;
 
     try {
       final docSnap = await docRef.get();

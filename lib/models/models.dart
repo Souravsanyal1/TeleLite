@@ -14,6 +14,9 @@ class Chat {
   final bool isPinned;
   final bool isPremium;
   final bool isStealthMode;
+  final bool disableSharing;
+  final String? profileColor;
+  final String? emojiStatus;
   final ChatCategory category;
 
   Chat({
@@ -30,6 +33,9 @@ class Chat {
     this.isPinned = false,
     this.isPremium = false,
     this.isStealthMode = false,
+    this.disableSharing = false,
+    this.profileColor,
+    this.emojiStatus,
     this.category = ChatCategory.personal,
   });
 }
@@ -64,6 +70,8 @@ class Contact {
   final bool isOnline;
   final bool isPremium;
   final bool isStealthMode;
+  final String? profileColor;
+  final String? emojiStatus;
   final String lastSeen;
 
   Contact({
@@ -74,6 +82,8 @@ class Contact {
     this.isOnline = false,
     this.isPremium = false,
     this.isStealthMode = false,
+    this.profileColor,
+    this.emojiStatus,
     this.lastSeen = 'Recently',
   });
 }

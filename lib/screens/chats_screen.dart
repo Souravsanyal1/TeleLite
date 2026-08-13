@@ -299,6 +299,14 @@ class _ChatsScreenState extends State<ChatsScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (chat.emojiStatus != null)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: Text(
+                            chat.emojiStatus!,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
                       if (chat.isVerified)
                         const Padding(
                           padding: EdgeInsets.only(left: 4),
