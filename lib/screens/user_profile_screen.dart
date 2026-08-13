@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/models.dart';
+import '../models/story_model.dart';
 import '../services/auth_service.dart';
 import '../services/mock_data.dart';
 import '../services/story_service.dart';
