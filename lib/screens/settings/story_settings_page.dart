@@ -68,8 +68,9 @@ class _StorySettingsPageState extends State<StorySettingsPage> {
   @override
   Widget build(BuildContext context) {
     final uid = _auth.currentUser?.uid;
-    if (uid == null)
+    if (uid == null) {
       return const Scaffold(body: Center(child: Text('Not logged in')));
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -78,8 +79,9 @@ class _StorySettingsPageState extends State<StorySettingsPage> {
       body: StreamBuilder<DocumentSnapshot>(
         stream: _firestore.collection('users').doc(uid).snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
 
           final userData = snapshot.data!.data() as Map<String, dynamic>? ?? {};
           final isPremium = userData['isPremium'] == true;

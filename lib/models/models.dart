@@ -9,6 +9,7 @@ class Chat {
   final int unreadCount;
   final bool isOnline;
   final bool isGroup;
+  final bool isChannel;
   final bool isSecret;
   final bool isVerified;
   final bool isPinned;
@@ -18,6 +19,14 @@ class Chat {
   final String? profileColor;
   final String? emojiStatus;
   final ChatCategory category;
+  // Group/Channel management
+  final String? ownerId;
+  final List<String> memberIds;
+  final List<String> adminIds;
+  final String? username;
+  final String? description;
+  final String? inviteLink;
+  final int memberCount;
 
   Chat({
     required this.id,
@@ -28,6 +37,7 @@ class Chat {
     this.unreadCount = 0,
     this.isOnline = false,
     this.isGroup = false,
+    this.isChannel = false,
     this.isSecret = false,
     this.isVerified = false,
     this.isPinned = false,
@@ -37,7 +47,70 @@ class Chat {
     this.profileColor,
     this.emojiStatus,
     this.category = ChatCategory.personal,
+    this.ownerId,
+    this.memberIds = const [],
+    this.adminIds = const [],
+    this.username,
+    this.description,
+    this.inviteLink,
+    this.memberCount = 0,
   });
+
+  Chat copyWith({
+    String? id,
+    String? name,
+    String? avatarUrl,
+    String? lastMessage,
+    String? time,
+    int? unreadCount,
+    bool? isOnline,
+    bool? isGroup,
+    bool? isChannel,
+    bool? isSecret,
+    bool? isVerified,
+    bool? isPinned,
+    bool? isPremium,
+    bool? isStealthMode,
+    bool? disableSharing,
+    String? profileColor,
+    String? emojiStatus,
+    ChatCategory? category,
+    String? ownerId,
+    List<String>? memberIds,
+    List<String>? adminIds,
+    String? username,
+    String? description,
+    String? inviteLink,
+    int? memberCount,
+  }) {
+    return Chat(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      lastMessage: lastMessage ?? this.lastMessage,
+      time: time ?? this.time,
+      unreadCount: unreadCount ?? this.unreadCount,
+      isOnline: isOnline ?? this.isOnline,
+      isGroup: isGroup ?? this.isGroup,
+      isChannel: isChannel ?? this.isChannel,
+      isSecret: isSecret ?? this.isSecret,
+      isVerified: isVerified ?? this.isVerified,
+      isPinned: isPinned ?? this.isPinned,
+      isPremium: isPremium ?? this.isPremium,
+      isStealthMode: isStealthMode ?? this.isStealthMode,
+      disableSharing: disableSharing ?? this.disableSharing,
+      profileColor: profileColor ?? this.profileColor,
+      emojiStatus: emojiStatus ?? this.emojiStatus,
+      category: category ?? this.category,
+      ownerId: ownerId ?? this.ownerId,
+      memberIds: memberIds ?? this.memberIds,
+      adminIds: adminIds ?? this.adminIds,
+      username: username ?? this.username,
+      description: description ?? this.description,
+      inviteLink: inviteLink ?? this.inviteLink,
+      memberCount: memberCount ?? this.memberCount,
+    );
+  }
 }
 
 class Message {
@@ -73,6 +146,7 @@ class Contact {
   final String? profileColor;
   final String? emojiStatus;
   final String lastSeen;
+  final String? username;
 
   Contact({
     required this.id,
@@ -85,6 +159,7 @@ class Contact {
     this.profileColor,
     this.emojiStatus,
     this.lastSeen = 'Recently',
+    this.username,
   });
 }
 
@@ -105,5 +180,26 @@ class CallItem {
     this.isVideo = false,
     this.isOutgoing = true,
     this.isMissed = false,
+  });
+}
+
+/// A simple member model for group/channel membership display
+class GroupMember {
+  final String id;
+  final String name;
+  final String avatarUrl;
+  final String? username;
+  final bool isAdmin;
+  final bool isOwner;
+  final bool isOnline;
+
+  GroupMember({
+    required this.id,
+    required this.name,
+    required this.avatarUrl,
+    this.username,
+    this.isAdmin = false,
+    this.isOwner = false,
+    this.isOnline = false,
   });
 }

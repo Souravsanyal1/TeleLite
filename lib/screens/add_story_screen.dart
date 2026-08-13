@@ -43,11 +43,11 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                 children: [
                   const Text('Publish story as', style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
-                  ListTile(
-                    leading: const CircleAvatar(backgroundColor: Colors.grey),
-                    title: const Text('My Story', style: TextStyle(color: Colors.white)),
-                    subtitle: const Text('personal account', style: TextStyle(color: Colors.white54)),
-                    trailing: const Icon(Icons.chevron_right, color: Colors.white54),
+                  const ListTile(
+                    leading: CircleAvatar(backgroundColor: Colors.grey),
+                    title: Text('My Story', style: TextStyle(color: Colors.white)),
+                    subtitle: Text('personal account', style: TextStyle(color: Colors.white54)),
+                    trailing: Icon(Icons.chevron_right, color: Colors.white54),
                     contentPadding: EdgeInsets.zero,
                   ),
                   const Divider(color: Colors.white24),
@@ -89,14 +89,14 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                     title: const Text('Allow Screenshots', style: TextStyle(color: Colors.white)),
                     value: true,
                     onChanged: (v) {},
-                    activeColor: Colors.blue,
+                    activeThumbColor: Colors.blue,
                     contentPadding: EdgeInsets.zero,
                   ),
                   SwitchListTile(
                     title: const Text('Keep on My Page', style: TextStyle(color: Colors.white)),
                     value: true,
                     onChanged: (v) {},
-                    activeColor: Colors.blue,
+                    activeThumbColor: Colors.blue,
                     contentPadding: EdgeInsets.zero,
                   ),
                   const SizedBox(height: 16),

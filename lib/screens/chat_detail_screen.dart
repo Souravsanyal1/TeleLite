@@ -3,6 +3,7 @@ import '../models/models.dart';
 import '../services/mock_data.dart';
 import '../theme/app_theme.dart';
 import 'user_profile_screen.dart';
+import 'group_management_screen.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final Chat chat;
@@ -97,7 +98,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          (widget.chat.isOnline && !widget.chat.isStealthMode) ? 'online' : 'last seen recently',
+                          widget.chat.isGroup
+                              ? '${widget.chat.memberCount} members'
+                              : widget.chat.isChannel
+                                  ? '${widget.chat.memberCount} subscribers'
+                                  : ((widget.chat.isOnline && !widget.chat.isStealthMode)
+                                      ? 'online'
+                                      : 'last seen recently'),
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
@@ -123,6 +130,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) {
                   switch (value) {
+                    case 'group_settings':
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => GroupManagementScreen(
+                            chat: widget.chat,
+                            dataService: widget.dataService,
+                          ),
+                        ),
+                      );
+                      break;
                     case 'view_profile':
                       _openUserProfile();
                       break;
@@ -171,8 +189,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       );
                       break;
                   }
-                },
+                 },
                 itemBuilder: (context) => [
+                  if (widget.chat.isGroup || widget.chat.isChannel)
+                    const PopupMenuItem(
+                      value: 'group_settings',
+                      child: Row(
+                        children: [
+                          Icon(Icons.settings, color: TeleTheme.primary, size: 20),
+                          SizedBox(width: 10),
+                          Text('Group Settings'),
+                        ],
+                      ),
+                    ),
                   const PopupMenuItem(
                     value: 'view_profile',
                     child: Row(
@@ -230,6 +259,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               ),
             ],
           ),
+
           body: Container(
             color: isDark ? const Color(0xFF0F1418) : const Color(0xFFE6EBF0),
             child: Column(
@@ -254,12 +284,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     color: isDark ? Colors.black26 : Colors.black12,
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.security, size: 14, color: Colors.grey),
-                        const SizedBox(width: 6),
-                        const Text(
+                        Icon(Icons.security, size: 14, color: Colors.grey),
+                        SizedBox(width: 6),
+                        Text(
                           'Sharing & Forwarding restricted',
                           style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
                         ),

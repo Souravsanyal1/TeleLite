@@ -8,10 +8,10 @@ import '../services/story_service.dart';
 import '../theme/app_theme.dart';
 import 'chat_detail_screen.dart';
 import 'add_story_screen.dart';
+import 'create_group_screen.dart';
 import '../widgets/story_row_widget.dart';
 import '../models/story_model.dart';
 
-import 'package:firebase_auth/firebase_auth.dart';
 
 class ChatsScreen extends StatefulWidget {
   final TelegramDataService dataService;
@@ -57,7 +57,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final currentUser = FirebaseAuth.instance.currentUser;
 
     // Filter chats based on category and search query
     final filteredChats = widget.dataService.chats.where((chat) {
@@ -184,13 +183,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
             child: Icon(Icons.camera_alt, color: isDark ? Colors.grey[400] : Colors.grey[700]),
           ),
           const SizedBox(height: 12),
+          // New Group / Channel popup
           FloatingActionButton(
             heroTag: 'newChat',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Start new conversation')),
-              );
-            },
+            onPressed: () => _showNewChatMenu(context),
             backgroundColor: TeleTheme.primary,
             child: const Icon(Icons.edit, color: Colors.white),
           ),
@@ -199,7 +195,120 @@ class _ChatsScreenState extends State<ChatsScreen> {
     );
   }
 
+  void _showNewChatMenu(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? const Color(0xFF1A2330) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white24 : Colors.black26,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Text(
+                'New Conversation',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            _menuTile(
+              context: context,
+              icon: Icons.group_add,
+              color: const Color(0xFF8A2387),
+              title: 'New Group',
+              subtitle: 'Add members and start a group chat',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CreateGroupScreen(
+                      dataService: widget.dataService,
+                      isChannel: false,
+                    ),
+                  ),
+                );
+              },
+            ),
+            _menuTile(
+              context: context,
+              icon: Icons.campaign,
+              color: TeleTheme.primary,
+              title: 'New Channel',
+              subtitle: 'Broadcast to unlimited subscribers',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CreateGroupScreen(
+                      dataService: widget.dataService,
+                      isChannel: true,
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _menuTile({
+    required BuildContext context,
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: color.withAlpha(30),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Icon(icon, color: color, size: 26),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : Colors.black87),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+            fontSize: 13, color: isDark ? Colors.white54 : Colors.black45),
+      ),
+    );
+  }
+
   Widget _buildCategoryChip(String label, ChatCategory category) {
+
     final isSelected = _selectedCategory == category;
     return Padding(
       padding: const EdgeInsets.only(right: 6),
