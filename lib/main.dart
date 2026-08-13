@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'screens/login_screen.dart';
+import 'screens/auth/phone_input_screen.dart';
+import 'screens/auth/profile_setup_screen.dart';
 import 'screens/main_navigation_screen.dart';
 import 'services/auth_service.dart';
 import 'services/mock_data.dart';
@@ -40,15 +42,35 @@ class _TelegramLiteAppState extends State<TelegramLiteApp> {
           darkTheme: TeleTheme.darkTheme(),
           home: StreamBuilder<User?>(
             stream: _authService.authStateChanges,
-            builder: (context, snapshot) {
-              final user = snapshot.data;
-              if (user != null) {
-                return MainNavigationScreen(
-                  dataService: _dataService,
-                  authService: _authService,
-                );
+            builder: (context, authSnapshot) {
+              final user = authSnapshot.data;
+              if (user == null) {
+                return PhoneInputScreen(authService: _authService);
               }
-              return LoginScreen(authService: _authService);
+
+              // User is authenticated - check if Firestore profile exists
+              return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>?>(
+                stream: _authService.userProfileStream,
+                builder: (context, profileSnapshot) {
+                  if (profileSnapshot.connectionState == ConnectionState.waiting) {
+                    return const Scaffold(
+                      body: Center(
+                        child: CircularProgressIndicator(color: TeleTheme.primary),
+                      ),
+                    );
+                  }
+
+                  final doc = profileSnapshot.data;
+                  if (doc == null || !doc.exists) {
+                    return ProfileSetupScreen(authService: _authService);
+                  }
+
+                  return MainNavigationScreen(
+                    dataService: _dataService,
+                    authService: _authService,
+                  );
+                },
+              );
             },
           ),
         );
@@ -56,4 +78,3 @@ class _TelegramLiteAppState extends State<TelegramLiteApp> {
     );
   }
 }
-

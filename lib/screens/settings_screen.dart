@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/mock_data.dart';
@@ -26,9 +27,6 @@ class SettingsScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentUser = authService.currentUser;
 
-    final displayName = currentUser?.displayName ?? 'Alex Johnson';
-    final emailOrPhone = currentUser?.email ?? '+1 555-0199 • @alex_johnson';
-
     return AnimatedBuilder(
       animation: dataService,
       builder: (context, _) {
@@ -49,55 +47,65 @@ class SettingsScreen extends StatelessWidget {
           ),
           body: ListView(
             children: [
-              // User Profile Header Card
-              Container(
-                color: isDark ? const Color(0xFF1E242B) : Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 36,
-                      backgroundImage: const NetworkImage(
-                        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-                      ),
-                      backgroundColor: TeleTheme.primary.withAlpha(51),
+              // User Profile Header Card from Firestore
+              StreamBuilder<DocumentSnapshot<Map<String, dynamic>>?>(
+                stream: authService.userProfileStream,
+                builder: (context, snapshot) {
+                  final data = snapshot.data?.data();
+                  final name = data?['displayName'] ?? currentUser?.displayName ?? 'TeleLite User';
+                  final phone = data?['phoneNumber'] ?? currentUser?.phoneNumber ?? '+880 1XXXXXXXXX';
+                  final username = data?['username'] != null ? '@${data!['username']}' : '@user';
+                  final bio = data?['bio'] ?? 'Building Telegram Lite in Flutter 🚀';
+                  final photoUrl = data?['photoUrl'] ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
+
+                  return Container(
+                    color: isDark ? const Color(0xFF1E242B) : Colors.white,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 36,
+                          backgroundImage: NetworkImage(photoUrl),
+                          backgroundColor: TeleTheme.primary.withAlpha(51),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$phone • $username',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color:
+                                      isDark ? Colors.grey[400] : Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                bio,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: TeleTheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            displayName,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            emailOrPhone,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color:
-                                  isDark ? Colors.grey[400] : Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'Building Telegram Lite in Flutter 🚀',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: TeleTheme.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
 
               const SizedBox(height: 12),
