@@ -50,6 +50,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   void _openUserProfile() {
+    if (widget.chat.isGroup || widget.chat.isChannel) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => GroupManagementScreen(
+            chat: widget.chat,
+            dataService: widget.dataService,
+          ),
+        ),
+      );
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(

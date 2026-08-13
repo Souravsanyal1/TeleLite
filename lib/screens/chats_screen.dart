@@ -353,15 +353,56 @@ class _ChatsScreenState extends State<ChatsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            // Avatar with Online indicator
+            // Avatar with Group/Channel/Online indicator
             Stack(
               children: [
                 CircleAvatar(
                   radius: 26,
-                  backgroundImage: NetworkImage(chat.avatarUrl),
-                  backgroundColor: TeleTheme.primary.withAlpha(51),
+                  backgroundImage: chat.avatarUrl.isNotEmpty
+                      ? NetworkImage(chat.avatarUrl)
+                      : null,
+                  backgroundColor: chat.isChannel
+                      ? TeleTheme.primary.withAlpha(51)
+                      : chat.isGroup
+                          ? const Color(0xFF8A2387).withAlpha(51)
+                          : TeleTheme.primary.withAlpha(51),
+                  child: chat.avatarUrl.isEmpty
+                      ? Icon(
+                          chat.isChannel
+                              ? Icons.campaign
+                              : chat.isGroup
+                                  ? Icons.group
+                                  : Icons.person,
+                          color: TeleTheme.primary,
+                        )
+                      : null,
                 ),
-                if (chat.isOnline && !chat.isStealthMode)
+                // Group icon badge
+                if (chat.isGroup || chat.isChannel)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: chat.isChannel
+                            ? TeleTheme.primary
+                            : const Color(0xFF8A2387),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF181C20) : Colors.white,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Icon(
+                        chat.isChannel ? Icons.campaign : Icons.group,
+                        size: 10,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                else if (chat.isOnline && !chat.isStealthMode)
                   Positioned(
                     right: 0,
                     bottom: 0,
@@ -372,8 +413,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                         color: TeleTheme.onlineSuccess,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color:
-                              isDark ? const Color(0xFF181C20) : Colors.white,
+                          color: isDark ? const Color(0xFF181C20) : Colors.white,
                           width: 2.5,
                         ),
                       ),
@@ -393,8 +433,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       if (chat.isSecret)
                         const Padding(
                           padding: EdgeInsets.only(right: 4),
-                          child:
-                              Icon(Icons.lock, size: 14, color: Colors.green),
+                          child: Icon(Icons.lock, size: 14, color: Colors.green),
                         ),
                       Expanded(
                         child: Text(
@@ -445,7 +484,19 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
+                  // Member count for groups/channels
+                  if (chat.isGroup || chat.isChannel)
+                    Text(
+                      chat.isChannel
+                          ? '${chat.memberCount} subscriber${chat.memberCount != 1 ? 's' : ''}'
+                          : '${chat.memberCount} member${chat.memberCount != 1 ? 's' : ''}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[500] : Colors.grey[500],
+                      ),
+                    ),
+                  const SizedBox(height: 2),
                   Row(
                     children: [
                       Expanded(
