@@ -19,15 +19,24 @@ class StoryService {
     // 2. Count stories in the last 7 days
     final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
     
-    final storyCountQuery = await _firestore
+    final storyQuery = await _firestore
         .collection('stories')
         .where('ownerId', isEqualTo: currentUser.uid)
-        .where('createdAt', isGreaterThan: Timestamp.fromDate(sevenDaysAgo))
-        .count()
         .get();
+        
+    int recentStoryCount = 0;
+    for (var doc in storyQuery.docs) {
+      final data = doc.data();
+      if (data['createdAt'] != null) {
+        final createdAt = (data['createdAt'] as Timestamp).toDate();
+        if (createdAt.isAfter(sevenDaysAgo)) {
+          recentStoryCount++;
+        }
+      }
+    }
     
     // 3. Limit check (Max 4 stories per 7 days for free users)
-    if ((storyCountQuery.count ?? 0) >= 4) {
+    if (recentStoryCount >= 4) {
       throw Exception('WEEKLY_LIMIT_REACHED');
     }
     
@@ -42,10 +51,19 @@ class StoryService {
     final query = await _firestore
         .collection('stories')
         .where('ownerId', isEqualTo: currentUser.uid)
-        .where('createdAt', isGreaterThan: Timestamp.fromDate(sevenDaysAgo))
-        .count()
         .get();
-    return query.count ?? 0;
+        
+    int count = 0;
+    for (var doc in query.docs) {
+      final data = doc.data();
+      if (data['createdAt'] != null) {
+        final createdAt = (data['createdAt'] as Timestamp).toDate();
+        if (createdAt.isAfter(sevenDaysAgo)) {
+          count++;
+        }
+      }
+    }
+    return count;
   }
 
   Future<void> uploadStory({
@@ -100,10 +118,20 @@ class StoryService {
         .where('expiresAt', isGreaterThan: Timestamp.fromDate(DateTime.now()))
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
+      final stories = snapshot.docs
           .map((doc) => Story.fromFirestore(doc))
           .where((story) => !story.isDeleted)
           .toList();
+          
+      // Sort stories so that all stories from the same user are grouped together,
+      // and within each user, ordered chronologically.
+      stories.sort((a, b) {
+        int ownerCompare = a.ownerId.compareTo(b.ownerId);
+        if (ownerCompare != 0) return ownerCompare;
+        return a.createdAt.compareTo(b.createdAt);
+      });
+      
+      return stories;
     });
   }
 

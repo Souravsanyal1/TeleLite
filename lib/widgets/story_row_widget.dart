@@ -17,17 +17,28 @@ class StoryRowWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
+    // Group stories by owner to avoid multiple circles for the same user
+    final Map<String, Story> firstStoryOfUser = {};
+    for (var story in stories) {
+      // Keep the first story we encounter for each user to represent them in the row
+      if (!firstStoryOfUser.containsKey(story.ownerId)) {
+        firstStoryOfUser[story.ownerId] = story;
+      }
+    }
+    
+    final uniqueStories = firstStoryOfUser.values.toList();
+
     return SizedBox(
       height: 90,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        itemCount: stories.length + 1,
+        itemCount: uniqueStories.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {
             return _buildMyStoryButton(context);
           }
-          final story = stories[index - 1];
+          final story = uniqueStories[index - 1];
           return _buildStoryAvatar(context, story, currentUserId);
         },
       ),
