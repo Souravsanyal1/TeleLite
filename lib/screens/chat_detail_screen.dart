@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/mock_data.dart';
 import '../theme/app_theme.dart';
+import 'user_profile_screen.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final Chat chat;
@@ -20,6 +21,7 @@ class ChatDetailScreen extends StatefulWidget {
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  bool _isMuted = false;
 
   @override
   void dispose() {
@@ -46,6 +48,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
+  void _openUserProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => UserProfileScreen(
+          chat: widget.chat,
+          dataService: widget.dataService,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -58,39 +72,43 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         return Scaffold(
           appBar: AppBar(
             leadingWidth: 30,
-            title: Row(
-              children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundImage: NetworkImage(widget.chat.avatarUrl),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.chat.name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        widget.chat.isOnline ? 'online' : 'last seen recently',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
+            title: GestureDetector(
+              onTap: _openUserProfile,
+              behavior: HitTestBehavior.opaque,
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundImage: NetworkImage(widget.chat.avatarUrl),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.chat.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          widget.chat.isOnline ? 'online' : 'last seen recently',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
             actions: [
               IconButton(
@@ -101,9 +119,114 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   );
                 },
               ),
-              IconButton(
+              PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
-                onPressed: () {},
+                onSelected: (value) {
+                  switch (value) {
+                    case 'view_profile':
+                      _openUserProfile();
+                      break;
+                    case 'mute':
+                      setState(() => _isMuted = !_isMuted);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(_isMuted
+                              ? 'Muted notifications for ${widget.chat.name}'
+                              : 'Unmuted notifications for ${widget.chat.name}'),
+                        ),
+                      );
+                      break;
+                    case 'search':
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Search in chat activated')),
+                      );
+                      break;
+                    case 'clear':
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Clear Chat History?'),
+                          content: Text('Are you sure you want to clear all messages with ${widget.chat.name}?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Chat history cleared')),
+                                );
+                              },
+                              child: const Text('Clear', style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
+                      );
+                      break;
+                    case 'block':
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Blocked ${widget.chat.name}')),
+                      );
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'view_profile',
+                    child: Row(
+                      children: [
+                        Icon(Icons.person_outline, color: TeleTheme.primary, size: 20),
+                        SizedBox(width: 10),
+                        Text('View Profile / Details'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'mute',
+                    child: Row(
+                      children: [
+                        Icon(
+                          _isMuted ? Icons.notifications_active : Icons.notifications_off_outlined,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(_isMuted ? 'Unmute Notifications' : 'Mute Notifications'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'search',
+                    child: Row(
+                      children: [
+                        Icon(Icons.search, size: 20),
+                        SizedBox(width: 10),
+                        Text('Search in Chat'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'clear',
+                    child: Row(
+                      children: [
+                        Icon(Icons.cleaning_services_outlined, size: 20),
+                        SizedBox(width: 10),
+                        Text('Clear History'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'block',
+                    child: Row(
+                      children: [
+                        Icon(Icons.block, color: Colors.redAccent, size: 20),
+                        SizedBox(width: 10),
+                        Text('Block User', style: TextStyle(color: Colors.redAccent)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

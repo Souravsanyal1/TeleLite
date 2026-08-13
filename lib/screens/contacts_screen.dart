@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../services/mock_data.dart';
 import '../theme/app_theme.dart';
 import 'chat_detail_screen.dart';
+import 'user_profile_screen.dart';
 
 class ContactsScreen extends StatefulWidget {
   final TelegramDataService dataService;
@@ -453,30 +454,43 @@ class _ContactsScreenState extends State<ContactsScreen> {
                 )
               else
                 ...filteredContacts.map((contact) => ListTile(
-                      leading: Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 22,
-                            backgroundImage: NetworkImage(contact.avatarUrl),
-                          ),
-                          if (contact.isOnline)
-                            Positioned(
-                              right: 0,
-                              bottom: 0,
-                              child: Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: TeleTheme.onlineSuccess,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: isDark ? const Color(0xFF181C20) : Colors.white,
-                                    width: 2,
+                      leading: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => UserProfileScreen(
+                                contact: contact,
+                                dataService: widget.dataService,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 22,
+                              backgroundImage: NetworkImage(contact.avatarUrl),
+                            ),
+                            if (contact.isOnline)
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: TeleTheme.onlineSuccess,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: isDark ? const Color(0xFF181C20) : Colors.white,
+                                      width: 2,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                       title: Text(
                         contact.name,
@@ -491,6 +505,32 @@ class _ContactsScreenState extends State<ContactsScreen> {
                           color: contact.isOnline ? TeleTheme.primary : (isDark ? Colors.grey[400] : Colors.grey[600]),
                         ),
                       ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.info_outline, color: TeleTheme.primary, size: 20),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => UserProfileScreen(
+                                contact: contact,
+                                dataService: widget.dataService,
+                              ),
+                            ),
+                          );
+                        },
+                        tooltip: 'View Profile Details',
+                      ),
+                      onLongPress: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => UserProfileScreen(
+                              contact: contact,
+                              dataService: widget.dataService,
+                            ),
+                          ),
+                        );
+                      },
                       onTap: () {
                         // Start conversation with contact
                         final chat = widget.dataService.createSecretChat(

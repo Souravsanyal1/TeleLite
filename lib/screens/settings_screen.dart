@@ -12,6 +12,8 @@ import 'settings/privacy_screen.dart';
 import 'settings/proxy_screen.dart';
 import 'settings/saved_messages_screen.dart';
 
+import 'user_profile_screen.dart';
+
 class SettingsScreen extends StatelessWidget {
   final TelegramDataService dataService;
   final AuthService authService;
@@ -21,6 +23,18 @@ class SettingsScreen extends StatelessWidget {
     required this.dataService,
     required this.authService,
   });
+
+  void _openCurrentUserProfile(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => UserProfileScreen(
+          isCurrentUser: true,
+          authService: authService,
+          dataService: dataService,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +55,8 @@ class SettingsScreen extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.edit),
-                onPressed: () {},
+                onPressed: () => _openCurrentUserProfile(context),
+                tooltip: 'View / Edit Profile',
               ),
             ],
           ),
@@ -58,51 +73,60 @@ class SettingsScreen extends StatelessWidget {
                   final bio = data?['bio'] ?? 'Building Telegram Lite in Flutter 🚀';
                   final photoUrl = data?['photoUrl'] ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
 
-                  return Container(
+                  return Material(
                     color: isDark ? const Color(0xFF1E242B) : Colors.white,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 36,
-                          backgroundImage: NetworkImage(photoUrl),
-                          backgroundColor: TeleTheme.primary.withAlpha(51),
+                    child: InkWell(
+                      onTap: () => _openCurrentUserProfile(context),
+                      child: Container(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 36,
+                              backgroundImage: NetworkImage(photoUrl),
+                              backgroundColor: TeleTheme.primary.withAlpha(51),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    name,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '$phone • $username',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color:
+                                          isDark ? Colors.grey[400] : Colors.grey[600],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    bio,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: TeleTheme.primary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right,
+                              color: isDark ? Colors.grey[600] : Colors.grey[400],
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                name,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '$phone • $username',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color:
-                                      isDark ? Colors.grey[400] : Colors.grey[600],
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                bio,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: TeleTheme.primary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   );
                 },
