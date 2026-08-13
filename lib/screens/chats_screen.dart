@@ -35,22 +35,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Telegram Lite'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.qr_code_scanner),
-            onPressed: () {},
-            tooltip: 'QR Code',
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Compose new message')),
-              );
-            },
-            tooltip: 'New Message',
-          ),
-        ],
       ),
       body: Column(
         children: [

@@ -35,7 +35,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         final screens = [
           ChatsScreen(dataService: widget.dataService),
           CallsScreen(dataService: widget.dataService),
-          ContactsScreen(dataService: widget.dataService),
+          ContactsScreen(
+            dataService: widget.dataService,
+            authService: widget.authService,
+          ),
           SettingsScreen(
             dataService: widget.dataService,
             authService: widget.authService,

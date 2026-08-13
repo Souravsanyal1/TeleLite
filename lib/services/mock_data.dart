@@ -169,6 +169,89 @@ class TelegramDataService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Chat createGroupChat({required String name, required String avatarUrl}) {
+    final newChat = Chat(
+      id: 'group_${DateTime.now().millisecondsSinceEpoch}',
+      name: name,
+      avatarUrl: avatarUrl.isNotEmpty ? avatarUrl : 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=150',
+      lastMessage: 'Group created',
+      time: 'Just now',
+      isGroup: true,
+      category: ChatCategory.work,
+    );
+    _chats.insert(0, newChat);
+    _chatMessages[newChat.id] = [
+      Message(
+        id: 'init_${newChat.id}',
+        chatId: newChat.id,
+        senderName: 'System',
+        text: 'Group "$name" was created.',
+        time: 'Just now',
+        isSentByMe: false,
+      ),
+    ];
+    notifyListeners();
+    return newChat;
+  }
+
+  Chat createSecretChat({required String name, required String avatarUrl}) {
+    final newChat = Chat(
+      id: 'secret_${DateTime.now().millisecondsSinceEpoch}',
+      name: name,
+      avatarUrl: avatarUrl.isNotEmpty ? avatarUrl : 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+      lastMessage: '🔒 Secret Chat established',
+      time: 'Just now',
+      isSecret: true,
+      isOnline: true,
+      category: ChatCategory.personal,
+    );
+    _chats.insert(0, newChat);
+    _chatMessages[newChat.id] = [
+      Message(
+        id: 'init_${newChat.id}',
+        chatId: newChat.id,
+        senderName: 'System',
+        text: '🔒 End-to-end encrypted secret chat established with $name.',
+        time: 'Just now',
+        isSentByMe: false,
+      ),
+    ];
+    notifyListeners();
+    return newChat;
+  }
+
+  Chat createChannelChat({required String name, required String description}) {
+    final newChat = Chat(
+      id: 'channel_${DateTime.now().millisecondsSinceEpoch}',
+      name: name,
+      avatarUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150',
+      lastMessage: description.isNotEmpty ? description : 'Channel created',
+      time: 'Just now',
+      isVerified: true,
+      category: ChatCategory.channels,
+    );
+    _chats.insert(0, newChat);
+    _chatMessages[newChat.id] = [
+      Message(
+        id: 'init_${newChat.id}',
+        chatId: newChat.id,
+        senderName: name,
+        text: 'Welcome to $name channel!',
+        time: 'Just now',
+        isSentByMe: false,
+      ),
+    ];
+    notifyListeners();
+    return newChat;
+  }
+
+  void addContact(Contact contact) {
+    if (!_contacts.any((c) => c.phone == contact.phone || c.id == contact.id)) {
+      _contacts.insert(0, contact);
+      notifyListeners();
+    }
+  }
+
   final List<Contact> _contacts = [
     Contact(
       id: 'c1',

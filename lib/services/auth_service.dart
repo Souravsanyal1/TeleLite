@@ -78,6 +78,53 @@ class AuthService extends ChangeNotifier {
     return userCredential;
   }
 
+  // Check if username is already taken by another user in Firestore
+  Future<bool> isUsernameAvailable(String username) async {
+    final clean = username.trim().replaceAll('@', '').toLowerCase();
+    if (clean.isEmpty) return false;
+
+    try {
+      final snap = await _firestore
+          .collection('users')
+          .where('username', isEqualTo: clean)
+          .get();
+
+      if (snap.docs.isEmpty) return true;
+      if (snap.docs.length == 1 && snap.docs.first.id == currentUser?.uid) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('isUsernameAvailable error: $e');
+      return true;
+    }
+  }
+
+  // Real-time stream of all registered users in Firestore
+  Stream<QuerySnapshot<Map<String, dynamic>>?> get registeredUsersStream {
+    return _firestore.collection('users').snapshots().handleError((e) {
+      debugPrint('registeredUsersStream error: $e');
+      return null;
+    });
+  }
+
+  // Find a registered user by phone number
+  Future<DocumentSnapshot<Map<String, dynamic>>?> findUserByPhoneNumber(String phone) async {
+    final cleanPhone = phone.replaceAll(RegExp(r'\D'), '');
+    try {
+      final snap = await _firestore.collection('users').get();
+      for (var doc in snap.docs) {
+        final dbPhone = (doc.data()['phoneNumber'] ?? '').toString().replaceAll(RegExp(r'\D'), '');
+        if (dbPhone.isNotEmpty && (dbPhone == cleanPhone || cleanPhone.endsWith(dbPhone) || dbPhone.endsWith(cleanPhone))) {
+          return doc;
+        }
+      }
+    } catch (e) {
+      debugPrint('findUserByPhoneNumber error: $e');
+    }
+    return null;
+  }
+
   bool _isProfileCompletedLocally = false;
 
   bool hasCompletedProfile(DocumentSnapshot<Map<String, dynamic>>? doc) {

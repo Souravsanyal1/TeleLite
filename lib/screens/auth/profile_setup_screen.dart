@@ -39,6 +39,42 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     super.dispose();
   }
 
+  void _showCustomPhotoDialog() {
+    final urlController = TextEditingController(text: _selectedAvatarUrl);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Custom Profile Photo'),
+        content: TextField(
+          controller: urlController,
+          decoration: const InputDecoration(
+            labelText: 'Image URL',
+            hintText: 'https://example.com/my-photo.jpg',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (urlController.text.trim().isNotEmpty) {
+                setState(() {
+                  _selectedAvatarUrl = urlController.text.trim();
+                });
+              }
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: TeleTheme.primary),
+            child: const Text('Use Photo', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleProfileSave() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -48,6 +84,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     });
 
     try {
+      // Check username uniqueness in Firestore
+      final isAvailable = await widget.authService.isUsernameAvailable(_usernameController.text);
+      if (!isAvailable) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Username @${_usernameController.text.trim().replaceAll('@', '')} is already taken. Please choose another username.';
+        });
+        return;
+      }
+
       await widget.authService.createOrUpdateUserProfile(
         name: _nameController.text,
         username: _usernameController.text,
@@ -104,30 +150,33 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                   // Avatar Image Picker
                   Center(
-                    child: Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 46,
-                          backgroundImage: NetworkImage(_selectedAvatarUrl),
-                          backgroundColor: TeleTheme.primary.withAlpha(50),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
-                              color: TeleTheme.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              size: 18,
-                              color: Colors.white,
+                    child: GestureDetector(
+                      onTap: _showCustomPhotoDialog,
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 46,
+                            backgroundImage: NetworkImage(_selectedAvatarUrl),
+                            backgroundColor: TeleTheme.primary.withAlpha(50),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: TeleTheme.primary,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                size: 18,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
