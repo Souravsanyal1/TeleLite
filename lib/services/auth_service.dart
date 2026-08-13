@@ -45,8 +45,12 @@ class AuthService extends ChangeNotifier {
     );
 
     if (credential.user != null) {
-      await credential.user!.updateDisplayName(name.trim());
-      await credential.user!.reload();
+      try {
+        await credential.user!.updateDisplayName(name.trim());
+        await credential.user!.reload();
+      } catch (e) {
+        debugPrint('Failed to update display name: $e');
+      }
     }
 
     notifyListeners();
@@ -55,7 +59,13 @@ class AuthService extends ChangeNotifier {
 
   Future<void> signOut() async {
     _isGuestMode = false;
-    await _auth.signOut();
+    if (_auth.currentUser != null) {
+      try {
+        await _auth.signOut();
+      } catch (e) {
+        debugPrint('Firebase signOut warning: $e');
+      }
+    }
     notifyListeners();
   }
 }
