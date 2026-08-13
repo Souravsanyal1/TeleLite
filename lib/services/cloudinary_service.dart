@@ -6,7 +6,7 @@ import 'package:crypto/crypto.dart';
 class CloudinaryService {
   static const String cloudName = 'nxxs4wxu';
   static const String apiKey = '543461283334664';
-  static const String apiSecret = '543461283334664';
+  static const String apiSecret = 'uO3-BFg36TDtdqazoLRwSYaZWwQ';
 
   Future<String?> uploadFile(File file, {bool isVideo = false}) async {
     final resourceType = isVideo ? 'video' : 'image';
