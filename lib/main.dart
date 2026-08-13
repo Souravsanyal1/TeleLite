@@ -60,6 +60,14 @@ class _TelegramLiteAppState extends State<TelegramLiteApp> {
                     );
                   }
 
+                  if (profileSnapshot.hasError) {
+                    debugPrint('Firestore profileSnapshot error: ${profileSnapshot.error}');
+                    return MainNavigationScreen(
+                      dataService: _dataService,
+                      authService: _authService,
+                    );
+                  }
+
                   final doc = profileSnapshot.data;
                   if (doc == null || !doc.exists) {
                     return ProfileSetupScreen(authService: _authService);

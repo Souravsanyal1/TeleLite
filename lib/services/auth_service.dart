@@ -54,9 +54,7 @@ class AuthService extends ChangeNotifier {
     if (user == null) return;
 
     final docRef = _firestore.collection('users').doc(user.uid);
-    final docSnap = await docRef.get();
     final now = DateTime.now().toIso8601String();
-
     final cleanUsername = username.trim().replaceAll('@', '');
 
     final data = {
@@ -70,11 +68,15 @@ class AuthService extends ChangeNotifier {
       'isOnline': true,
     };
 
-    if (!docSnap.exists) {
-      data['createdAt'] = now;
+    try {
+      final docSnap = await docRef.get();
+      if (!docSnap.exists) {
+        data['createdAt'] = now;
+      }
+      await docRef.set(data, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore set profile error: $e');
     }
-
-    await docRef.set(data, SetOptions(merge: true));
 
     try {
       await user.updateDisplayName(name.trim());
@@ -89,13 +91,25 @@ class AuthService extends ChangeNotifier {
   Future<DocumentSnapshot<Map<String, dynamic>>?> getUserProfile() async {
     final user = _auth.currentUser;
     if (user == null) return null;
-    return await _firestore.collection('users').doc(user.uid).get();
+    try {
+      return await _firestore.collection('users').doc(user.uid).get();
+    } catch (e) {
+      debugPrint('Firestore getUserProfile error: $e');
+      return null;
+    }
   }
 
   Stream<DocumentSnapshot<Map<String, dynamic>>?> get userProfileStream {
     final user = _auth.currentUser;
     if (user == null) return Stream.value(null);
-    return _firestore.collection('users').doc(user.uid).snapshots();
+    return _firestore
+        .collection('users')
+        .doc(user.uid)
+        .snapshots()
+        .handleError((error) {
+      debugPrint('Firestore userProfileStream error: $error');
+      return null;
+    });
   }
 
   Future<void> signOut() async {
