@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "658104141431",
+    "project_id": "telelite-48c4b",
+    "storage_bucket": "telelite-48c4b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:658104141431:android:58195493d7a7303c166872",
+        "android_client_info": {
+          "package_name": "com.example.telegram"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmxlZSjM3oh2nlute7ze1zPqaau8VnSFs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
