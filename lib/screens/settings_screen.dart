@@ -257,7 +257,7 @@ class SettingsScreen extends StatelessWidget {
                 title: 'Story Settings',
                 subtitle: 'Privacy, duration, limits',
                 isDark: isDark,
-                page: const StorySettingsPage(),
+                page: StorySettingsPage(dataService: dataService, authService: authService),
               ),
               _buildSettingsTile(
                 context: context,

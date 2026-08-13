@@ -62,8 +62,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
     ),
     PremiumFeature(
       title: 'Advanced Chat Folders',
-      description:
-          'Create up to 30 custom chat folders with unlimited pins.',
+      description: 'Create up to 30 custom chat folders with unlimited pins.',
       icon: Icons.folder_special_rounded,
       iconBgColor: Color(0xFF009688),
       category: 'Organization',
@@ -330,9 +329,10 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
       vsync: this,
       duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
-    
-    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
-    
+
+    _confettiController =
+        ConfettiController(duration: const Duration(seconds: 3));
+
     _paymentService = PaymentService(
       dataService: widget.dataService,
       authService: widget.authService,
@@ -356,7 +356,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
   void _handleSubscribe() async {
     setState(() => _isSubscribing = true);
     await _paymentService.buyPremium(context);
-    
+
     // Fallback if the user cancels payment, we should unset the loading state eventually,
     // but the actual success is handled by _paymentService.onPurchaseSuccess
     Future.delayed(const Duration(seconds: 15), () {
@@ -382,12 +382,13 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1C2733).withOpacity(0.95),
+                  color: const Color(0xFF1C2733).withValues(alpha: 0.95),
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.1)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       blurRadius: 20,
                       spreadRadius: 5,
                     ),
@@ -415,7 +416,8 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                           ),
                         ],
                       ),
-                      child: const Icon(Icons.star, size: 48, color: Colors.white),
+                      child:
+                          const Icon(Icons.star, size: 48, color: Colors.white),
                     ),
                     const SizedBox(height: 20),
                     const Text(
@@ -480,7 +482,8 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                   ],
                   createParticlePath: (size) {
                     final path = Path();
-                    path.addOval(Rect.fromCircle(center: Offset.zero, radius: 5));
+                    path.addOval(
+                        Rect.fromCircle(center: Offset.zero, radius: 5));
                     return path;
                   },
                 ),
@@ -540,13 +543,18 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                                       feature.svgIconUrl!,
                                       width: 28,
                                       height: 28,
-                                      colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                                      placeholderBuilder: (BuildContext context) => Container(
+                                      colorFilter: const ColorFilter.mode(
+                                          Colors.white, BlendMode.srcIn),
+                                      placeholderBuilder:
+                                          (BuildContext context) => Container(
                                         padding: const EdgeInsets.all(4),
-                                        child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                        child: const CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2),
                                       ),
                                     )
-                                  : Icon(feature.icon, color: Colors.white, size: 28)),
+                                  : Icon(feature.icon,
+                                      color: Colors.white, size: 28)),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -1351,16 +1359,16 @@ class PremiumComparisonTable extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          flex: 2, 
-          child: Text(
-            feature,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-          )
-        ),
+            flex: 2,
+            child: Text(
+              feature,
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.w500),
+            )),
         Expanded(
           flex: 1,
           child: Text(
-            free, 
+            free,
             style: const TextStyle(color: Colors.grey),
             textAlign: TextAlign.center,
           ),
@@ -1368,8 +1376,9 @@ class PremiumComparisonTable extends StatelessWidget {
         Expanded(
           flex: 1,
           child: Text(
-            premium, 
-            style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+            premium,
+            style: const TextStyle(
+                color: Colors.amber, fontWeight: FontWeight.bold),
             textAlign: TextAlign.right,
           ),
         ),

@@ -19,20 +19,21 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
 
   void _postStory() async {
     setState(() => _isPosting = true);
-    
+
     try {
       // In a real app, you would upload widget.imageFile to Firebase Storage
-      // and get the download URL. Here we'll use a placeholder URL 
+      // and get the download URL. Here we'll use a placeholder URL
       // or a mock URL to simulate the upload process for the UI clone.
-      final dummyMediaUrl = 'https://images.unsplash.com/photo-1616423640778-28d1b53229bd?w=400';
-      
+      const dummyMediaUrl =
+          'https://images.unsplash.com/photo-1616423640778-28d1b53229bd?w=400';
+
       await _storyService.uploadStory(
         mediaUrl: dummyMediaUrl,
         mediaType: 'image',
       );
-      
+
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Story posted successfully!'),
@@ -40,14 +41,14 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-      
+
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString() == 'Exception: WEEKLY_LIMIT_REACHED' 
-              ? 'Weekly limit reached (4 stories). Upgrade to Premium for unlimited stories!' 
+          content: Text(e.toString() == 'Exception: WEEKLY_LIMIT_REACHED'
+              ? 'Weekly limit reached (4 stories). Upgrade to Premium for unlimited stories!'
               : 'Failed to post story: $e'),
           backgroundColor: Colors.redAccent,
         ),
@@ -76,7 +77,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                 fit: BoxFit.contain,
               ),
             ),
-            
+
             // Top Bar
             Positioned(
               top: 0,
@@ -89,7 +90,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.5),
+                      Colors.black.withValues(alpha: 0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -97,27 +98,29 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                      icon: const Icon(Icons.close,
+                          color: Colors.white, size: 28),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
               ),
             ),
-            
+
             // Bottom Bar with Caption and Post Button
             Positioned(
               bottom: 0,
               left: 0,
               right: 0,
               child: Container(
-                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 24),
+                padding: const EdgeInsets.only(
+                    left: 16, right: 16, bottom: 16, top: 24),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                     colors: [
-                      Colors.black.withOpacity(0.8),
+                      Colors.black.withValues(alpha: 0.8),
                       Colors.transparent,
                     ],
                   ),
@@ -128,7 +131,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(24),
                         ),
                         child: TextField(
@@ -160,7 +163,8 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Icon(Icons.send, color: Colors.white, size: 24),
+                            : const Icon(Icons.send,
+                                color: Colors.white, size: 24),
                       ),
                     ),
                   ],

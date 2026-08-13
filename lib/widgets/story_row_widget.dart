@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/story_model.dart';
-import '../theme/app_theme.dart';
 import '../screens/story_viewer_page.dart';
 
 class StoryRowWidget extends StatelessWidget {
@@ -49,7 +48,8 @@ class StoryRowWidget extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey.withAlpha(50), width: 2.5),
+                border:
+                    Border.all(color: Colors.grey.withAlpha(50), width: 2.5),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(1.5),
@@ -57,7 +57,9 @@ class StoryRowWidget extends StatelessWidget {
                   radius: 26,
                   backgroundImage: currentUser?.photoURL != null
                       ? NetworkImage(currentUser!.photoURL!)
-                      : const NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150') as ImageProvider,
+                      : const NetworkImage(
+                              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150')
+                          as ImageProvider,
                 ),
               ),
             ),
@@ -70,7 +72,8 @@ class StoryRowWidget extends StatelessWidget {
                   color: const Color(0xFF0088CC), // Primary Blue as requested
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
+                    color: Theme.of(context).appBarTheme.backgroundColor ??
+                        Theme.of(context).scaffoldBackgroundColor,
                     width: 2,
                   ),
                 ),
@@ -83,9 +86,10 @@ class StoryRowWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStoryAvatar(BuildContext context, Story story, String currentUserId) {
+  Widget _buildStoryAvatar(
+      BuildContext context, Story story, String currentUserId) {
     final isViewed = story.viewers.contains(currentUserId);
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: GestureDetector(
@@ -104,7 +108,8 @@ class StoryRowWidget extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(
-              color: isViewed ? const Color(0xFF8E8E93) : const Color(0xFF34C759),
+              color:
+                  isViewed ? const Color(0xFF8E8E93) : const Color(0xFF34C759),
               width: 3,
             ),
           ),

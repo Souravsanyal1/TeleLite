@@ -27,7 +27,7 @@ class StoryService {
         .get();
     
     // 3. Limit check (Max 4 stories per 7 days for free users)
-    if (storyCountQuery.count >= 4) {
+    if ((storyCountQuery.count ?? 0) >= 4) {
       throw Exception('WEEKLY_LIMIT_REACHED');
     }
     

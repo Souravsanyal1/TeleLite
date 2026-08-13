@@ -3,10 +3,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../theme/app_theme.dart';
 import '../../services/story_service.dart';
+import '../../services/mock_data.dart';
+import '../../services/auth_service.dart';
 import 'telegram_premium_screen.dart';
 
 class StorySettingsPage extends StatefulWidget {
-  const StorySettingsPage({super.key});
+  final TelegramDataService dataService;
+  final AuthService authService;
+
+  const StorySettingsPage({
+    super.key,
+    required this.dataService,
+    required this.authService,
+  });
 
   @override
   State<StorySettingsPage> createState() => _StorySettingsPageState();
@@ -39,21 +48,28 @@ class _StorySettingsPageState extends State<StorySettingsPage> {
   Future<void> _updatePrivacy(String value) async {
     final uid = _auth.currentUser?.uid;
     if (uid != null) {
-      await _firestore.collection('users').doc(uid).update({'storyPrivacy': value});
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .update({'storyPrivacy': value});
     }
   }
 
   Future<void> _updateDuration(int value) async {
     final uid = _auth.currentUser?.uid;
     if (uid != null) {
-      await _firestore.collection('users').doc(uid).update({'defaultDuration': value});
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .update({'defaultDuration': value});
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final uid = _auth.currentUser?.uid;
-    if (uid == null) return const Scaffold(body: Center(child: Text('Not logged in')));
+    if (uid == null)
+      return const Scaffold(body: Center(child: Text('Not logged in')));
 
     return Scaffold(
       appBar: AppBar(
@@ -62,7 +78,8 @@ class _StorySettingsPageState extends State<StorySettingsPage> {
       body: StreamBuilder<DocumentSnapshot>(
         stream: _firestore.collection('users').doc(uid).snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          if (!snapshot.hasData)
+            return const Center(child: CircularProgressIndicator());
 
           final userData = snapshot.data!.data() as Map<String, dynamic>? ?? {};
           final isPremium = userData['isPremium'] == true;
@@ -131,11 +148,15 @@ class _StorySettingsPageState extends State<StorySettingsPage> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
-                            value: isPremium ? 1.0 : (_storyCount / 4.0).clamp(0.0, 1.0),
+                            value: isPremium
+                                ? 1.0
+                                : (_storyCount / 4.0).clamp(0.0, 1.0),
                             backgroundColor: Colors.grey[300],
                             color: isPremium
                                 ? TeleTheme.primary
-                                : (_storyCount >= 4 ? Colors.red : Colors.green),
+                                : (_storyCount >= 4
+                                    ? Colors.red
+                                    : Colors.green),
                             minHeight: 10,
                           ),
                         ),
@@ -158,11 +179,21 @@ class _StorySettingsPageState extends State<StorySettingsPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: GestureDetector(
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const TelegramPremiumScreen()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  TelegramPremiumScreen(
+                                      dataService: widget.dataService,
+                                      authService: widget.authService,
+                                  )));
                     },
                     child: const Text(
                       'Weekly story limit reached. Upgrade to Premium for unlimited stories.',
-                      style: TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: Colors.orange,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -178,7 +209,7 @@ class _StorySettingsPageState extends State<StorySettingsPage> {
       padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
       child: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           color: TeleTheme.primary,
           fontWeight: FontWeight.bold,
           fontSize: 14,
@@ -196,7 +227,7 @@ class _StorySettingsPageState extends State<StorySettingsPage> {
     bool isPremium = false,
   }) {
     final bool disabled = isPremiumRequired && !isPremium;
-    
+
     return ListTile(
       title: Row(
         children: [
@@ -216,11 +247,14 @@ class _StorySettingsPageState extends State<StorySettingsPage> {
         onChanged: disabled ? null : onChanged,
         activeColor: TeleTheme.primary,
       ),
-      onTap: disabled ? () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('This feature requires Telegram Premium')),
-        );
-      } : () => onChanged(value),
+      onTap: disabled
+          ? () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('This feature requires Telegram Premium')),
+              );
+            }
+          : () => onChanged(value),
     );
   }
 }
