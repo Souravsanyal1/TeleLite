@@ -204,14 +204,26 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  Stream<DocumentSnapshot<Map<String, dynamic>>?> get userProfileStream async* {
+  Stream<DocumentSnapshot<Map<String, dynamic>>?> get userProfileStream {
     final user = _auth.currentUser;
     if (user == null) {
-      yield null;
-      return;
+      return Stream.value(null);
     }
 
-    // Auto-migrate if doc doesn't exist but phone number is already registered
+    // Trigger background auto-migration
+    _checkAndAutoMigrate(user);
+
+    return _firestore
+        .collection('users')
+        .doc(user.uid)
+        .snapshots()
+        .handleError((error) {
+      debugPrint('Firestore userProfileStream error: $error');
+      return null;
+    });
+  }
+
+  Future<void> _checkAndAutoMigrate(User user) async {
     try {
       final docSnap = await _firestore.collection('users').doc(user.uid).get();
       if (!docSnap.exists) {
@@ -231,15 +243,6 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       debugPrint('Auto-migration error: $e');
     }
-
-    yield* _firestore
-        .collection('users')
-        .doc(user.uid)
-        .snapshots()
-        .handleError((error) {
-      debugPrint('Firestore userProfileStream error: $error');
-      return null;
-    });
   }
 
   Future<void> updatePremiumStatus(bool isPremium) async {
