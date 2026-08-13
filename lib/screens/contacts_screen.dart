@@ -418,8 +418,19 @@ class _ContactsScreenState extends State<ContactsScreen> {
             ...widget.dataService.contacts,
           ];
 
+          // Deduplicate by clean phone number
+          final Map<String, Contact> uniqueContacts = {};
+          for (var c in allContacts) {
+            final cleanPhone = c.phone.replaceAll(RegExp(r'\D'), '');
+            final key = cleanPhone.isEmpty ? c.id : cleanPhone;
+            if (!uniqueContacts.containsKey(key)) {
+              uniqueContacts[key] = c;
+            }
+          }
+          final deduplicatedContacts = uniqueContacts.values.toList();
+
           // Filter by search query
-          final filteredContacts = allContacts.where((c) {
+          final filteredContacts = deduplicatedContacts.where((c) {
             if (_searchQuery.isEmpty) return true;
             final query = _searchQuery.toLowerCase();
             return c.name.toLowerCase().contains(query) ||
