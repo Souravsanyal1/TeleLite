@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../models/models.dart';
 import '../services/mock_data.dart';
 import '../theme/app_theme.dart';
 import 'chat_detail_screen.dart';
+import 'add_story_screen.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -19,6 +22,27 @@ class ChatsScreen extends StatefulWidget {
 class _ChatsScreenState extends State<ChatsScreen> {
   ChatCategory _selectedCategory = ChatCategory.all;
   String _searchQuery = '';
+
+  Future<void> _pickImageForStory() async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null && mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AddStoryScreen(imageFile: File(pickedFile.path)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to pick image: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +72,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 GestureDetector(
-                  onTap: () {},
+                  onTap: _pickImageForStory,
                   child: Stack(
                     alignment: Alignment.bottomRight,
                     children: [
@@ -174,11 +198,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
         children: [
           FloatingActionButton.small(
             heroTag: 'addStory',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Add new story')),
-              );
-            },
+            onPressed: _pickImageForStory,
             backgroundColor: isDark ? const Color(0xFF262D36) : Colors.white,
             elevation: 2,
             child: Icon(Icons.camera_alt, color: isDark ? Colors.grey[400] : Colors.grey[700]),
