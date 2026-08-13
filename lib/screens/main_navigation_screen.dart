@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import '../services/mock_data.dart';
 import '../theme/app_theme.dart';
 import 'calls_screen.dart';
@@ -8,8 +9,13 @@ import 'settings_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   final TelegramDataService dataService;
+  final AuthService authService;
 
-  const MainNavigationScreen({super.key, required this.dataService});
+  const MainNavigationScreen({
+    super.key,
+    required this.dataService,
+    required this.authService,
+  });
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
@@ -30,7 +36,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ChatsScreen(dataService: widget.dataService),
           CallsScreen(dataService: widget.dataService),
           ContactsScreen(dataService: widget.dataService),
-          SettingsScreen(dataService: widget.dataService),
+          SettingsScreen(
+            dataService: widget.dataService,
+            authService: widget.authService,
+          ),
         ];
 
         return Scaffold(

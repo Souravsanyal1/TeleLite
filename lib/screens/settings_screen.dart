@@ -1,15 +1,30 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import '../services/mock_data.dart';
 import '../theme/app_theme.dart';
 
 class SettingsScreen extends StatelessWidget {
   final TelegramDataService dataService;
+  final AuthService authService;
 
-  const SettingsScreen({super.key, required this.dataService});
+  const SettingsScreen({
+    super.key,
+    required this.dataService,
+    required this.authService,
+  });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final currentUser = authService.currentUser;
+    final isGuest = authService.isGuestMode;
+
+    final displayName = isGuest
+        ? 'Guest User (Demo)'
+        : (currentUser?.displayName ?? 'Alex Johnson');
+    final emailOrPhone = isGuest
+        ? 'Demo Mode • Click Log Out to Sign In'
+        : (currentUser?.email ?? '+1 555-0199 • @alex_johnson');
 
     return AnimatedBuilder(
       animation: dataService,
@@ -50,16 +65,16 @@ class SettingsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Alex Johnson',
-                            style: TextStyle(
+                          Text(
+                            displayName,
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '+1 555-0199 • @alex_johnson',
+                            emailOrPhone,
                             style: TextStyle(
                               fontSize: 13,
                               color:
@@ -155,6 +170,31 @@ class SettingsScreen extends StatelessWidget {
                 title: 'Language',
                 subtitle: 'English',
                 isDark: isDark,
+              ),
+
+              const SizedBox(height: 12),
+              _buildSectionHeader('Account', isDark),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent.withAlpha(38),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.logout_rounded,
+                      color: Colors.redAccent, size: 22),
+                ),
+                title: const Text(
+                  'Log Out',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.redAccent,
+                  ),
+                ),
+                onTap: () {
+                  authService.signOut();
+                },
               ),
 
               const SizedBox(height: 24),

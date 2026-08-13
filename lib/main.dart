@@ -1,7 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'screens/login_screen.dart';
 import 'screens/main_navigation_screen.dart';
+import 'services/auth_service.dart';
 import 'services/mock_data.dart';
 import 'theme/app_theme.dart';
 
@@ -22,11 +25,12 @@ class TelegramLiteApp extends StatefulWidget {
 
 class _TelegramLiteAppState extends State<TelegramLiteApp> {
   final TelegramDataService _dataService = TelegramDataService();
+  final AuthService _authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _dataService,
+      animation: Listenable.merge([_dataService, _authService]),
       builder: (context, _) {
         return MaterialApp(
           title: 'Telegram Lite',
@@ -34,9 +38,22 @@ class _TelegramLiteAppState extends State<TelegramLiteApp> {
           themeMode: _dataService.themeMode,
           theme: TeleTheme.lightTheme(),
           darkTheme: TeleTheme.darkTheme(),
-          home: MainNavigationScreen(dataService: _dataService),
+          home: StreamBuilder<User?>(
+            stream: _authService.authStateChanges,
+            builder: (context, snapshot) {
+              final user = snapshot.data;
+              if (user != null || _authService.isGuestMode) {
+                return MainNavigationScreen(
+                  dataService: _dataService,
+                  authService: _authService,
+                );
+              }
+              return LoginScreen(authService: _authService);
+            },
+          ),
         );
       },
     );
   }
 }
+
