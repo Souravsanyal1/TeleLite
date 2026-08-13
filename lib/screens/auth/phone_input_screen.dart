@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
@@ -43,7 +42,6 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final rawPhone = _phoneController.text.trim();
-    // Normalize phone number format
     final cleanPhone = rawPhone.startsWith('0') ? rawPhone.substring(1) : rawPhone;
     final fullPhoneNumber = '$_selectedCountryCode$cleanPhone';
 
@@ -53,45 +51,28 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
     });
 
     try {
-      await widget.authService.verifyPhoneNumber(
-        phoneNumber: fullPhoneNumber,
-        verificationCompleted: (PhoneAuthCredential credential) async {
-          // Auto-verification on Android
-          try {
-            await FirebaseAuth.instance.signInWithCredential(credential);
-          } catch (e) {
-            debugPrint('Auto sign-in error: $e');
-          }
-        },
-        verificationFailed: (FirebaseAuthException e) {
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-              _errorMessage = e.message ?? 'Verification failed (${e.code}). Please try again.';
-            });
-          }
-        },
-        codeSent: (String verificationId, int? resendToken) {
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-            });
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => OtpVerificationScreen(
-                  phoneNumber: fullPhoneNumber,
-                  verificationId: verificationId,
-                  resendToken: resendToken,
-                  authService: widget.authService,
-                ),
+      final result = await widget.authService.sendSmsNetBdOtp(fullPhoneNumber);
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (result.isSuccess) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => OtpVerificationScreen(
+                phoneNumber: fullPhoneNumber,
+                authService: widget.authService,
               ),
-            );
-          }
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          debugPrint('Code auto retrieval timeout for $verificationId');
-        },
-      );
+            ),
+          );
+        } else {
+          setState(() {
+            _errorMessage = result.message;
+          });
+        }
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -193,7 +174,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Please confirm your country code and enter your phone number to sign in or create an account.',
+                    'TeleLite will send a 6-digit SMS verification code to your phone number via sms.net.bd Gateway.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
@@ -332,7 +313,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
                               ),
                             )
                           : const Text(
-                              'Continue',
+                              'Send Verification SMS',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,

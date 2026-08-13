@@ -29,6 +29,7 @@ dependencies:
   smooth_page_indicator: ^1.2.0
   flutter_animated_icons: ^1.0.1
   google_fonts: ^6.2.1
+  http: ^1.6.0
   
 
 dev_dependencies:

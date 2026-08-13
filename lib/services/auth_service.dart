@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'sms_service.dart';
 
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -9,7 +10,41 @@ class AuthService extends ChangeNotifier {
   User? get currentUser => _auth.currentUser;
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // Phone Number Verification (SMS OTP)
+  String? _activeOtpCode;
+  String? _activePhoneNumber;
+
+  String? get activePhoneNumber => _activePhoneNumber;
+
+  // Send real SMS OTP via sms.net.bd Gateway
+  Future<SmsNetBdResult> sendSmsNetBdOtp(String phoneNumber) async {
+    _activePhoneNumber = SmsNetBdService.formatPhoneNumber(phoneNumber);
+    final result = await SmsNetBdService.sendOtpSms(phoneNumber: _activePhoneNumber!);
+    if (result.isSuccess && result.otpCode != null) {
+      _activeOtpCode = result.otpCode;
+      debugPrint('Generated SMS OTP: $_activeOtpCode for $_activePhoneNumber');
+    }
+    return result;
+  }
+
+  // Verify entered 6-digit OTP code against sms.net.bd generated code
+  Future<bool> verifySmsNetBdOtp(String enteredCode) async {
+    final cleanEntered = enteredCode.trim();
+    if (_activeOtpCode != null && cleanEntered == _activeOtpCode) {
+      // Ensure user is signed in to Firebase Auth
+      if (_auth.currentUser == null) {
+        try {
+          await _auth.signInAnonymously();
+        } catch (e) {
+          debugPrint('Anonymous auth error: $e');
+        }
+      }
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  // Native Firebase Phone Number Verification (SMS OTP fallback)
   Future<void> verifyPhoneNumber({
     required String phoneNumber,
     required Function(PhoneAuthCredential) verificationCompleted,
@@ -29,7 +64,7 @@ class AuthService extends ChangeNotifier {
     );
   }
 
-  // Sign In using SMS OTP credential
+  // Sign In using native SMS OTP credential
   Future<UserCredential> signInWithSmsCode({
     required String verificationId,
     required String smsCode,
@@ -69,7 +104,7 @@ class AuthService extends ChangeNotifier {
 
     final data = {
       'uid': user.uid,
-      'phoneNumber': user.phoneNumber ?? '',
+      'phoneNumber': _activePhoneNumber ?? user.phoneNumber ?? '',
       'username': cleanUsername,
       'displayName': name.trim(),
       'photoUrl': photoUrl ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
@@ -124,6 +159,8 @@ class AuthService extends ChangeNotifier {
 
   Future<void> signOut() async {
     _isProfileCompletedLocally = false;
+    _activeOtpCode = null;
+    _activePhoneNumber = null;
     if (_auth.currentUser != null) {
       try {
         await _auth.signOut();

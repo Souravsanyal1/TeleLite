@@ -1,20 +1,15 @@
 import 'dart:async';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
-  final String verificationId;
-  final int? resendToken;
   final AuthService authService;
 
   const OtpVerificationScreen({
     super.key,
     required this.phoneNumber,
-    required this.verificationId,
-    this.resendToken,
     required this.authService,
   });
 
@@ -27,9 +22,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
-  late String _currentVerificationId;
-  int? _currentResendToken;
-
   int _resendCountdown = 45;
   Timer? _timer;
   bool _canResend = false;
@@ -39,8 +31,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   @override
   void initState() {
     super.initState();
-    _currentVerificationId = widget.verificationId;
-    _currentResendToken = widget.resendToken;
     _startResendTimer();
   }
 
@@ -96,25 +86,29 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     });
 
     try {
-      await widget.authService.signInWithSmsCode(
-        verificationId: _currentVerificationId,
-        smsCode: code,
-      );
+      final success = await widget.authService.verifySmsNetBdOtp(code);
 
       if (mounted) {
-        // Pop back to root - main.dart StreamBuilder will route to ProfileSetup or Home
-        Navigator.of(context).popUntil((route) => route.isFirst);
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (success) {
+          // Pop back to root - main.dart StreamBuilder will route to ProfileSetup or Home
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        } else {
+          setState(() {
+            _errorMessage = 'Invalid verification code entered. Please check your SMS and try again.';
+          });
+        }
       }
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = e.message ?? 'Invalid code entered (${e.code}). Please try again.';
-      });
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Verification error: ${e.toString()}';
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Verification error: ${e.toString()}';
+        });
+      }
     }
   }
 
@@ -127,33 +121,24 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     });
 
     try {
-      await widget.authService.verifyPhoneNumber(
-        phoneNumber: widget.phoneNumber,
-        resendToken: _currentResendToken,
-        verificationCompleted: (credential) {},
-        verificationFailed: (e) {
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-              _errorMessage = e.message ?? 'Resend failed. Try again later.';
-            });
-          }
-        },
-        codeSent: (verificationId, resendToken) {
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-              _currentVerificationId = verificationId;
-              _currentResendToken = resendToken;
-            });
-            _startResendTimer();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('A new verification code has been sent via SMS.')),
-            );
-          }
-        },
-        codeAutoRetrievalTimeout: (id) {},
-      );
+      final result = await widget.authService.sendSmsNetBdOtp(widget.phoneNumber);
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (result.isSuccess) {
+          _startResendTimer();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('A new 6-digit verification code has been sent via SMS.')),
+          );
+        } else {
+          setState(() {
+            _errorMessage = result.message;
+          });
+        }
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
