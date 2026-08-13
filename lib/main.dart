@@ -42,7 +42,7 @@ class _TelegramLiteAppState extends State<TelegramLiteApp> {
             stream: _authService.authStateChanges,
             builder: (context, snapshot) {
               final user = snapshot.data;
-              if (user != null || _authService.isGuestMode) {
+              if (user != null) {
                 return MainNavigationScreen(
                   dataService: _dataService,
                   authService: _authService,

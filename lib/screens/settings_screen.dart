@@ -2,6 +2,14 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/mock_data.dart';
 import '../theme/app_theme.dart';
+import 'settings/chat_folders_screen.dart';
+import 'settings/data_storage_screen.dart';
+import 'settings/devices_screen.dart';
+import 'settings/language_screen.dart';
+import 'settings/notifications_screen.dart';
+import 'settings/privacy_screen.dart';
+import 'settings/proxy_screen.dart';
+import 'settings/saved_messages_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   final TelegramDataService dataService;
@@ -17,14 +25,9 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentUser = authService.currentUser;
-    final isGuest = authService.isGuestMode;
 
-    final displayName = isGuest
-        ? 'Guest User (Demo)'
-        : (currentUser?.displayName ?? 'Alex Johnson');
-    final emailOrPhone = isGuest
-        ? 'Demo Mode • Click Log Out to Sign In'
-        : (currentUser?.email ?? '+1 555-0199 • @alex_johnson');
+    final displayName = currentUser?.displayName ?? 'Alex Johnson';
+    final emailOrPhone = currentUser?.email ?? '+1 555-0199 • @alex_johnson';
 
     return AnimatedBuilder(
       animation: dataService,
@@ -99,57 +102,71 @@ class SettingsScreen extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // Settings Sections
+              // General Settings Section
               _buildSectionHeader('General Settings', isDark),
               _buildSettingsTile(
+                context: context,
                 icon: Icons.bookmark_border,
                 iconColor: Colors.blue,
                 title: 'Saved Messages',
                 isDark: isDark,
+                page: const SavedMessagesScreen(),
               ),
               _buildSettingsTile(
+                context: context,
                 icon: Icons.folder_open_outlined,
                 iconColor: Colors.cyan,
                 title: 'Chat Folders',
                 subtitle: 'Personal, Work, Unread',
                 isDark: isDark,
+                page: const ChatFoldersScreen(),
               ),
               _buildSettingsTile(
+                context: context,
                 icon: Icons.devices_outlined,
                 iconColor: Colors.amber,
                 title: 'Devices',
                 subtitle: '2 active sessions',
                 isDark: isDark,
+                page: const DevicesScreen(),
               ),
 
               const SizedBox(height: 12),
               _buildSectionHeader('Privacy & Data', isDark),
               _buildSettingsTile(
+                context: context,
                 icon: Icons.notifications_none_outlined,
                 iconColor: Colors.redAccent,
                 title: 'Notifications and Sounds',
                 isDark: isDark,
+                page: const NotificationsScreen(),
               ),
               _buildSettingsTile(
+                context: context,
                 icon: Icons.lock_outline,
                 iconColor: Colors.green,
                 title: 'Privacy and Security',
                 subtitle: 'Two-Step Verification, Passcode',
                 isDark: isDark,
+                page: const PrivacyScreen(),
               ),
               _buildSettingsTile(
+                context: context,
                 icon: Icons.pie_chart_outline,
                 iconColor: Colors.purple,
                 title: 'Data and Storage',
                 subtitle: 'Network usage, Auto-download',
                 isDark: isDark,
+                page: const DataStorageScreen(),
               ),
               _buildSettingsTile(
+                context: context,
                 icon: Icons.vpn_key_outlined,
                 iconColor: Colors.orange,
                 title: 'Proxy Settings',
                 subtitle: 'Connected (SOCKS5)',
                 isDark: isDark,
+                page: const ProxyScreen(),
               ),
 
               const SizedBox(height: 12),
@@ -165,11 +182,13 @@ class SettingsScreen extends StatelessWidget {
                     color: TeleTheme.primary),
               ),
               _buildSettingsTile(
+                context: context,
                 icon: Icons.language_outlined,
                 iconColor: Colors.teal,
                 title: 'Language',
                 subtitle: 'English',
                 isDark: isDark,
+                page: const LanguageScreen(),
               ),
 
               const SizedBox(height: 12),
@@ -230,11 +249,13 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Widget _buildSettingsTile({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required String title,
     String? subtitle,
     required bool isDark,
+    required Widget page,
   }) {
     return ListTile(
       leading: Container(
@@ -262,7 +283,11 @@ class SettingsScreen extends StatelessWidget {
         Icons.chevron_right,
         color: isDark ? Colors.grey[600] : Colors.grey[400],
       ),
-      onTap: () {},
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => page),
+        );
+      },
     );
   }
 }

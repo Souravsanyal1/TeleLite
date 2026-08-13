@@ -4,27 +4,13 @@ import 'package:flutter/material.dart';
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  bool _isGuestMode = false;
-  bool get isGuestMode => _isGuestMode;
-
   User? get currentUser => _auth.currentUser;
   Stream<User?> get authStateChanges => _auth.authStateChanges();
-
-  void enableGuestMode() {
-    _isGuestMode = true;
-    notifyListeners();
-  }
-
-  void exitGuestMode() {
-    _isGuestMode = false;
-    notifyListeners();
-  }
 
   Future<UserCredential> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
-    _isGuestMode = false;
     final credential = await _auth.signInWithEmailAndPassword(
       email: email.trim(),
       password: password.trim(),
@@ -38,7 +24,6 @@ class AuthService extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
-    _isGuestMode = false;
     final credential = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
       password: password.trim(),
@@ -58,7 +43,6 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
-    _isGuestMode = false;
     if (_auth.currentUser != null) {
       try {
         await _auth.signOut();

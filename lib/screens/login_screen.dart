@@ -236,25 +236,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-
-                  // Guest / Demo Mode Button
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      widget.authService.enableGuestMode();
-                    },
-                    icon: const Icon(Icons.person_outline),
-                    label: const Text('Continue as Guest (Demo Mode)'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      side: BorderSide(
-                        color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 24),
 
                   // Register Option
