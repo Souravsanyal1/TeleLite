@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:telegram_lite/services/auth_service.dart';
 import 'package:telegram_lite/services/mock_data.dart';
 import 'package:telegram_lite/services/payment_service.dart';
-import 'package:telegram_lite/theme/app_theme.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -835,24 +834,31 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0E1621) : const Color(0xFFF1F5F9);
+    final cardColor = isDark ? const Color(0xFF17212B) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white70 : Colors.black54;
+    final borderColor = isDark ? Colors.white.withAlpha(20) : Colors.black.withAlpha(20);
+
     return AnimatedBuilder(
       animation: widget.dataService,
       builder: (context, _) {
         final isPremium = widget.dataService.isPremium;
 
         return Scaffold(
-          backgroundColor: const Color(0xFF0E1621),
+          backgroundColor: bgColor,
           appBar: AppBar(
-            backgroundColor: const Color(0xFF0E1621),
+            backgroundColor: bgColor,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              icon: Icon(Icons.arrow_back, color: textColor),
               onPressed: () => Navigator.pop(context),
             ),
-            title: const Text(
+            title: Text(
               'Telegram Premium',
               style: TextStyle(
-                color: Colors.white,
+                color: textColor,
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
               ),
@@ -898,8 +904,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                             alignment: Alignment.center,
                             children: [
                               ShaderMask(
-                                shaderCallback: (bounds) =>
-                                    const LinearGradient(
+                                shaderCallback: (bounds) => const LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
@@ -908,10 +913,10 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                                     Color(0xFF29B6F6),
                                   ],
                                 ).createShader(bounds),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.star_rounded,
                                   size: 130,
-                                  color: Colors.white,
+                                  color: textColor,
                                 ),
                               ),
                             ],
@@ -923,13 +928,13 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                     const SizedBox(height: 16),
 
                     // Title & Subtitle
-                    const Text(
+                    Text(
                       'Telegram Premium',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: textColor,
                         letterSpacing: -0.3,
                       ),
                     ),
@@ -941,7 +946,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[400],
+                          color: subTextColor,
                           height: 1.35,
                         ),
                       ),
@@ -952,9 +957,9 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                     // Subscription Plan Selection Card
                     Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFF17212B),
+                        color: cardColor,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white.withAlpha(20)),
+                        border: Border.all(color: borderColor),
                       ),
                       child: Column(
                         children: [
@@ -987,18 +992,17 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                                       children: [
                                         Row(
                                           children: [
-                                            const Text(
+                                            Text(
                                               'Annual',
                                               style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
-                                                color: Colors.white,
+                                                color: textColor,
                                               ),
                                             ),
                                             const SizedBox(width: 8),
                                             Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
+                                              padding: const EdgeInsets.symmetric(
                                                 horizontal: 6,
                                                 vertical: 2,
                                               ),
@@ -1007,12 +1011,12 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                                                 borderRadius:
                                                     BorderRadius.circular(6),
                                               ),
-                                              child: const Text(
+                                              child: Text(
                                                 '-29%',
                                                 style: TextStyle(
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
+                                                  color: textColor,
                                                 ),
                                               ),
                                             ),
@@ -1027,14 +1031,14 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                                                 style: TextStyle(
                                                   decoration: TextDecoration
                                                       .lineThrough,
-                                                  color: Colors.grey[500],
+                                                  color: subTextColor,
                                                   fontSize: 13,
                                                 ),
                                               ),
-                                              const TextSpan(
+                                              TextSpan(
                                                 text: 'BDT3,800.00/year',
                                                 style: TextStyle(
-                                                  color: Colors.white70,
+                                                  color: subTextColor,
                                                   fontSize: 13,
                                                 ),
                                               ),
@@ -1049,7 +1053,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.grey[300],
+                                      color: subTextColor,
                                     ),
                                   ),
                                 ],
@@ -1059,7 +1063,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
 
                           Divider(
                             height: 1,
-                            color: Colors.white.withAlpha(20),
+                            color: borderColor,
                             indent: 16,
                             endIndent: 16,
                           ),
@@ -1086,13 +1090,13 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                                     size: 24,
                                   ),
                                   const SizedBox(width: 14),
-                                  const Expanded(
+                                  Expanded(
                                     child: Text(
                                       'Monthly',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                        color: textColor,
                                       ),
                                     ),
                                   ),
@@ -1101,7 +1105,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.grey[300],
+                                      color: subTextColor,
                                     ),
                                   ),
                                 ],
@@ -1117,9 +1121,9 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                     // Premium Features List Card
                     Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFF17212B),
+                        color: cardColor,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white.withAlpha(20)),
+                        border: Border.all(color: borderColor),
                       ),
                       child: ListView.separated(
                         shrinkWrap: true,
@@ -1127,7 +1131,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                         itemCount: _features.length,
                         separatorBuilder: (context, index) => Divider(
                           height: 1,
-                          color: Colors.white.withAlpha(15),
+                          color: borderColor,
                           indent: 68,
                         ),
                         itemBuilder: (context, index) {
@@ -1156,17 +1160,17 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                                           )
                                         : Icon(
                                             feat.icon,
-                                            color: Colors.white,
+                                            color: textColor,
                                             size: 20,
                                           )),
                               ),
                             ),
                             title: Text(
                               feat.title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: textColor,
                               ),
                             ),
                             subtitle: Text(
@@ -1175,7 +1179,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 13,
-                                color: Colors.grey[400],
+                                color: subTextColor,
                                 height: 1.3,
                               ),
                             ),
@@ -1191,10 +1195,6 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
 
                     const SizedBox(height: 20),
 
-                    const PremiumComparisonTable(),
-
-                    const SizedBox(height: 20),
-
                     // Terms of Service Disclaimer
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -1202,8 +1202,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                         TextSpan(
                           text:
                               'By subscribing to Telegram Premium you agree to the ',
-                          style:
-                              TextStyle(fontSize: 12, color: Colors.grey[500]),
+                          style: TextStyle(fontSize: 12, color: subTextColor),
                           children: const [
                             TextSpan(
                               text: 'Telegram Terms of Service',
@@ -1247,9 +1246,9 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        const Color(0xFF0E1621).withAlpha(0),
-                        const Color(0xFF0E1621).withAlpha(230),
-                        const Color(0xFF0E1621),
+                        bgColor.withAlpha(0),
+                        bgColor.withAlpha(230),
+                        bgColor,
                       ],
                     ),
                   ),
@@ -1284,11 +1283,11 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                           ? null
                           : _handleSubscribe,
                       child: _isSubscribing
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 24,
                               height: 24,
                               child: CircularProgressIndicator(
-                                color: Colors.white,
+                                color: textColor,
                                 strokeWidth: 2.5,
                               ),
                             )
@@ -1298,10 +1297,10 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                                   : (_isAnnualSelected
                                       ? 'Subscribe for BDT3,800.00 per year'
                                       : 'Subscribe for BDT450.00 per month'),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: textColor,
                               ),
                             ),
                     ),
@@ -1312,77 +1311,6 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
           ),
         );
       },
-    );
-  }
-}
-
-class PremiumComparisonTable extends StatelessWidget {
-  const PremiumComparisonTable({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E2630),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withAlpha(20), width: 1),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Story Features Comparison',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildRow('Story Duration', '24h only', '24h / 48h / 72h'),
-            const Divider(color: Colors.white24, height: 24),
-            _buildRow('Weekly Limit', '4 stories', 'Unlimited'),
-            const Divider(color: Colors.white24, height: 24),
-            _buildRow('Stealth Mode', 'No', 'Yes'),
-            const Divider(color: Colors.white24, height: 24),
-            _buildRow('Privacy Options', 'Basic', 'Advanced'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRow(String feature, String free, String premium) {
-    return Row(
-      children: [
-        Expanded(
-            flex: 2,
-            child: Text(
-              feature,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w500),
-            )),
-        Expanded(
-          flex: 1,
-          child: Text(
-            free,
-            style: const TextStyle(color: Colors.grey),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        Expanded(
-          flex: 1,
-          child: Text(
-            premium,
-            style: const TextStyle(
-                color: Colors.amber, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.right,
-          ),
-        ),
-      ],
     );
   }
 }

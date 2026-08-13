@@ -115,12 +115,12 @@ class StoryService {
   Stream<List<Story>> getActiveStories() {
     return _firestore
         .collection('stories')
-        .where('expiresAt', isGreaterThan: Timestamp.fromDate(DateTime.now()))
         .snapshots()
         .map((snapshot) {
+      final now = DateTime.now();
       final stories = snapshot.docs
           .map((doc) => Story.fromFirestore(doc))
-          .where((story) => !story.isDeleted)
+          .where((story) => !story.isDeleted && story.expiresAt.isAfter(now))
           .toList();
           
       // Sort stories so that all stories from the same user are grouped together,
@@ -139,12 +139,12 @@ class StoryService {
     return _firestore
         .collection('stories')
         .where('ownerId', isEqualTo: userId)
-        .where('expiresAt', isGreaterThan: Timestamp.fromDate(DateTime.now()))
         .snapshots()
         .map((snapshot) {
+      final now = DateTime.now();
       return snapshot.docs
           .map((doc) => Story.fromFirestore(doc))
-          .where((story) => !story.isDeleted)
+          .where((story) => !story.isDeleted && story.expiresAt.isAfter(now))
           .toList();
     });
   }

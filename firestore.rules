@@ -155,7 +155,9 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated()
         && request.resource.data.ownerId == request.auth.uid;
-      allow update, delete: if isAuthenticated()
+      // Allow any authenticated user to update a story (so they can add themselves to viewers)
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated()
         && resource.data.ownerId == request.auth.uid;
     }
 
