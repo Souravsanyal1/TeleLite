@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import '../services/mock_data.dart';
-import '../theme/app_theme.dart';
-import 'calls_screen.dart';
-import 'chats_screen.dart';
-import 'contacts_screen.dart';
-import 'settings_screen.dart';
+import 'package:telegram_lite/screens/calls_screen.dart';
+import 'package:telegram_lite/screens/chats_screen.dart';
+import 'package:telegram_lite/screens/contacts_screen.dart';
+import 'package:telegram_lite/screens/settings_screen.dart';
+import 'package:telegram_lite/services/auth_service.dart';
+import 'package:telegram_lite/services/mock_data.dart';
+import 'package:telegram_lite/theme/app_theme.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   final TelegramDataService dataService;

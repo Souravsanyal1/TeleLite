@@ -1,19 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
-import '../services/auth_service.dart';
-import '../services/mock_data.dart';
-import '../theme/app_theme.dart';
-import 'settings/chat_folders_screen.dart';
-import 'settings/data_storage_screen.dart';
-import 'settings/devices_screen.dart';
-import 'settings/language_screen.dart';
-import 'settings/notifications_screen.dart';
-import 'settings/privacy_screen.dart';
-import 'settings/proxy_screen.dart';
-import 'settings/telegram_premium_screen.dart';
-import 'settings/saved_messages_screen.dart';
-import 'user_profile_screen.dart';
+import 'package:telegram_lite/services/auth_service.dart';
+import 'package:telegram_lite/services/mock_data.dart';
+import 'package:telegram_lite/theme/app_theme.dart';
+import 'package:telegram_lite/screens/settings/chat_folders_screen.dart';
+import 'package:telegram_lite/screens/settings/data_storage_screen.dart';
+import 'package:telegram_lite/screens/settings/devices_screen.dart';
+import 'package:telegram_lite/screens/settings/language_screen.dart';
+import 'package:telegram_lite/screens/settings/notifications_screen.dart';
+import 'package:telegram_lite/screens/settings/privacy_screen.dart';
+import 'package:telegram_lite/screens/settings/proxy_screen.dart';
+import 'package:telegram_lite/screens/settings/telegram_premium_screen.dart';
+import 'package:telegram_lite/screens/settings/saved_messages_screen.dart';
+import 'package:telegram_lite/screens/user_profile_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   final TelegramDataService dataService;

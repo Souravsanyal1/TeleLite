@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-
-import '../../services/auth_service.dart';
-import '../../services/mock_data.dart';
+import 'package:telegram_lite/services/auth_service.dart';
+import 'package:telegram_lite/services/mock_data.dart';
+import 'package:telegram_lite/theme/app_theme.dart';
 
 class PremiumFeature {
   final String title;

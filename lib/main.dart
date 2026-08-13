@@ -1,14 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'screens/auth/phone_input_screen.dart';
-import 'screens/auth/profile_setup_screen.dart';
-import 'screens/main_navigation_screen.dart';
-import 'services/auth_service.dart';
-import 'services/mock_data.dart';
-import 'theme/app_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:telegram_lite/firebase_options.dart';
+import 'package:telegram_lite/screens/auth/phone_input_screen.dart';
+import 'package:telegram_lite/screens/auth/profile_setup_screen.dart';
+import 'package:telegram_lite/screens/main_navigation_screen.dart';
+import 'package:telegram_lite/services/auth_service.dart';
+import 'package:telegram_lite/services/mock_data.dart';
+import 'package:telegram_lite/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,16 +52,19 @@ class _TelegramLiteAppState extends State<TelegramLiteApp> {
               return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>?>(
                 stream: _authService.userProfileStream,
                 builder: (context, profileSnapshot) {
-                  if (profileSnapshot.connectionState == ConnectionState.waiting) {
+                  if (profileSnapshot.connectionState ==
+                      ConnectionState.waiting) {
                     return const Scaffold(
                       body: Center(
-                        child: CircularProgressIndicator(color: TeleTheme.primary),
+                        child:
+                            CircularProgressIndicator(color: TeleTheme.primary),
                       ),
                     );
                   }
 
                   if (profileSnapshot.hasError) {
-                    debugPrint('Firestore profileSnapshot error: ${profileSnapshot.error}');
+                    debugPrint(
+                        'Firestore profileSnapshot error: ${profileSnapshot.error}');
                     return MainNavigationScreen(
                       dataService: _dataService,
                       authService: _authService,
