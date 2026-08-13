@@ -1183,6 +1183,10 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
 
                     const SizedBox(height: 20),
 
+                    const PremiumComparisonTable(),
+
+                    const SizedBox(height: 20),
+
                     // Terms of Service Disclaimer
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -1300,6 +1304,76 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
           ),
         );
       },
+    );
+  }
+}
+
+class PremiumComparisonTable extends StatelessWidget {
+  const PremiumComparisonTable({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E2630),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withAlpha(20), width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Story Features Comparison',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildRow('Story Duration', '24h only', '24h / 48h / 72h'),
+            const Divider(color: Colors.white24, height: 24),
+            _buildRow('Weekly Limit', '4 stories', 'Unlimited'),
+            const Divider(color: Colors.white24, height: 24),
+            _buildRow('Stealth Mode', 'No', 'Yes'),
+            const Divider(color: Colors.white24, height: 24),
+            _buildRow('Privacy Options', 'Basic', 'Advanced'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRow(String feature, String free, String premium) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2, 
+          child: Text(
+            feature,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+          )
+        ),
+        Expanded(
+          flex: 1,
+          child: Text(
+            free, 
+            style: const TextStyle(color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        Expanded(
+          flex: 1,
+          child: Text(
+            premium, 
+            style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.right,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/story_service.dart';
 
 class AddStoryScreen extends StatefulWidget {
   final File imageFile;
@@ -13,25 +14,46 @@ class AddStoryScreen extends StatefulWidget {
 
 class _AddStoryScreenState extends State<AddStoryScreen> {
   final TextEditingController _captionController = TextEditingController();
+  final StoryService _storyService = StoryService();
   bool _isPosting = false;
 
   void _postStory() async {
     setState(() => _isPosting = true);
     
-    // Simulate network delay for posting story
-    await Future.delayed(const Duration(seconds: 1));
-    
-    if (!mounted) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Story posted successfully!'),
-        backgroundColor: TeleTheme.primary,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    
-    Navigator.pop(context);
+    try {
+      // In a real app, you would upload widget.imageFile to Firebase Storage
+      // and get the download URL. Here we'll use a placeholder URL 
+      // or a mock URL to simulate the upload process for the UI clone.
+      final dummyMediaUrl = 'https://images.unsplash.com/photo-1616423640778-28d1b53229bd?w=400';
+      
+      await _storyService.uploadStory(
+        mediaUrl: dummyMediaUrl,
+        mediaType: 'image',
+      );
+      
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Story posted successfully!'),
+          backgroundColor: TeleTheme.primary,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString() == 'Exception: WEEKLY_LIMIT_REACHED' 
+              ? 'Weekly limit reached (4 stories). Upgrade to Premium for unlimited stories!' 
+              : 'Failed to post story: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      setState(() => _isPosting = false);
+    }
   }
 
   @override

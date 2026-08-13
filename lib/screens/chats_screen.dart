@@ -4,9 +4,12 @@ import 'package:image_picker/image_picker.dart';
 
 import '../models/models.dart';
 import '../services/mock_data.dart';
+import '../services/story_service.dart';
 import '../theme/app_theme.dart';
 import 'chat_detail_screen.dart';
 import 'add_story_screen.dart';
+import '../widgets/story_row_widget.dart';
+import '../models/story_model.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -22,6 +25,7 @@ class ChatsScreen extends StatefulWidget {
 class _ChatsScreenState extends State<ChatsScreen> {
   ChatCategory _selectedCategory = ChatCategory.all;
   String _searchQuery = '';
+  final StoryService _storyService = StoryService();
 
   Future<void> _pickImageForStory() async {
     try {
@@ -64,67 +68,34 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Telegram Lite'),
+        title: const Text('TeleLite'),
+        toolbarHeight: 64,
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0, top: 4.0, bottom: 4.0),
+          Expanded(
             child: Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                GestureDetector(
-                  onTap: _pickImageForStory,
-                  child: Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.grey.withAlpha(50), width: 2.5),
+                Expanded(
+                  child: StreamBuilder<List<Story>>(
+                    stream: _storyService.getActiveStories(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return const Center(child: Icon(Icons.error));
+                      }
+                      
+                      final stories = snapshot.data ?? [];
+                      
+                      return Container(
+                        padding: const EdgeInsets.only(left: 120), // Leave space for title
+                        alignment: Alignment.centerRight,
+                        child: StoryRowWidget(
+                          stories: stories,
+                          onAddStoryTap: _pickImageForStory,
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(1.5),
-                          child: CircleAvatar(
-                            radius: 14,
-                            backgroundImage: currentUser?.photoURL != null
-                                ? NetworkImage(currentUser!.photoURL!)
-                                : const NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150') as ImageProvider,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 2,
-                        child: Container(
-                          padding: const EdgeInsets.all(1),
-                          decoration: BoxDecoration(
-                            color: TeleTheme.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).scaffoldBackgroundColor, width: 1.5),
-                          ),
-                          child: const Icon(Icons.add, size: 10, color: Colors.white),
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 ),
-                for (var i = 0; i < (widget.dataService.chats.length > 3 ? 3 : widget.dataService.chats.length); i++)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: TeleTheme.primary, width: 2.5),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(1.5),
-                        child: CircleAvatar(
-                          radius: 14,
-                          backgroundImage: NetworkImage(widget.dataService.chats[i].avatarUrl),
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),

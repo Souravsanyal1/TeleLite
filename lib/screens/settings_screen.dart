@@ -12,6 +12,7 @@ import 'package:telegram_lite/screens/settings/privacy_screen.dart';
 import 'package:telegram_lite/screens/settings/proxy_screen.dart';
 import 'package:telegram_lite/screens/settings/telegram_premium_screen.dart';
 import 'package:telegram_lite/screens/settings/saved_messages_screen.dart';
+import 'package:telegram_lite/screens/settings/story_settings_page.dart';
 import 'package:telegram_lite/screens/user_profile_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -248,6 +249,15 @@ class SettingsScreen extends StatelessWidget {
                 title: 'Saved Messages',
                 isDark: isDark,
                 page: const SavedMessagesScreen(),
+              ),
+              _buildSettingsTile(
+                context: context,
+                icon: Icons.camera_alt_outlined,
+                iconColor: Colors.pinkAccent,
+                title: 'Story Settings',
+                subtitle: 'Privacy, duration, limits',
+                isDark: isDark,
+                page: const StorySettingsPage(),
               ),
               _buildSettingsTile(
                 context: context,
