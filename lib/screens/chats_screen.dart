@@ -252,7 +252,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   backgroundImage: NetworkImage(chat.avatarUrl),
                   backgroundColor: TeleTheme.primary.withAlpha(51),
                 ),
-                if (chat.isOnline)
+                if (chat.isOnline && !chat.isStealthMode)
                   Positioned(
                     right: 0,
                     bottom: 0,

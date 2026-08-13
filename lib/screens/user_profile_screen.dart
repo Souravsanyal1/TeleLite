@@ -81,7 +81,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final photoUrl = widget.chat?.avatarUrl ??
         widget.contact?.avatarUrl ??
         'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
-    final isOnline = widget.chat?.isOnline ?? widget.contact?.isOnline ?? false;
+    final isStealthMode = widget.chat?.isStealthMode ?? widget.contact?.isStealthMode ?? false;
+    final isOnline = (widget.chat?.isOnline ?? widget.contact?.isOnline ?? false) && !isStealthMode;
     final rawPhone = widget.contact?.phone.isNotEmpty == true
         ? widget.contact!.phone
         : '+880 1712 345678';
@@ -108,16 +109,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           // Hide number unless user explicitly selected 'Everybody'
           final displayPhone = (visibility == 'Everybody') ? dbPhone : 'Hidden';
 
+          final dbIsOnline = data?['isOnline'] ?? isOnline;
+          final dbStealthMode = data?['stealthMode'] ?? isStealthMode;
+          final finalIsOnline = dbIsOnline && !dbStealthMode;
+
           return _buildProfileBody(
             context: context,
             name: data?['displayName'] ?? name,
-            subtitle: isOnline ? 'online' : 'last seen recently',
+            subtitle: finalIsOnline ? 'online' : 'last seen recently',
             phone: displayPhone,
             username:
                 data?['username'] != null ? '@${data!['username']}' : username,
             bio: data?['bio'] ?? bio,
             photoUrl: data?['photoUrl'] ?? photoUrl,
-            isOnline: data?['isOnline'] ?? isOnline,
+            isOnline: finalIsOnline,
             isVerified: isVerified,
             isCurrentUser: false,
             isDark: isDark,

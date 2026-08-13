@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../models/models.dart';
 
@@ -64,6 +64,7 @@ class TelegramDataService extends ChangeNotifier {
         isSecret: oldChat.isSecret,
         isVerified: oldChat.isVerified,
         isPinned: oldChat.isPinned,
+        isStealthMode: oldChat.isStealthMode,
         category: oldChat.category,
       );
     }

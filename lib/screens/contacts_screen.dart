@@ -401,6 +401,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
               final photoUrl = data['photoUrl'] ??
                   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
               final isOnline = data['isOnline'] ?? true;
+              final isStealthMode = data['stealthMode'] == true;
 
               registeredContacts.add(
                 Contact(
@@ -408,8 +409,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
                   name: username.isNotEmpty ? '$name ($username)' : name,
                   phone: phone,
                   avatarUrl: photoUrl,
-                  isOnline: isOnline,
-                  lastSeen: 'recently',
+                  isOnline: isOnline && !isStealthMode,
+                  isStealthMode: isStealthMode,
+                  lastSeen: isStealthMode ? 'recently' : 'recently',
                 ),
               );
             }

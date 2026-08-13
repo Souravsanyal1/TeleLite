@@ -1,0 +1,65 @@
+Telegram Premium Features List
+==============================
+
+1. Stealth Mode
+   - Hide your online status and read receipts from everyone, while still seeing theirs.
+
+2. Advanced Chat Folders
+   - Create up to 30 custom chat folders with unlimited pins.
+
+3. Stories
+   - Unlimited posting, priority order, stealth mode, permanent view history and more.
+
+4. Unlimited Cloud Storage
+   - 4 GB per each document, unlimited storage for your chats and media overall.
+
+5. Doubled Limits
+   - Up to 1000 channels, 30 folders, 10 pins, 20 public links, 4 accounts and more.
+
+6. Telegram Business
+   - Upgrade your account with business features such as location, opening hours and quick replies.
+
+7. Last Seen Times
+   - View the last seen and read times of others even if you hide yours.
+
+8. Voice-to-Text Conversion
+   - Ability to read the transcript of any incoming voice message.
+
+9. Faster Download Speed
+   - No more limits on the speed with which media and documents are downloaded.
+
+10. Real-Time Translation
+    - Real-time translation of chats and channels into other languages.
+
+11. Animated Emoji
+    - Include animated emoji from different packs in any message you send.
+
+12. Emoji Statuses
+    - Choose from thousands of emoji to display current activity next to your name.
+
+13. Tags in Saved Messages
+    - Organize your Saved Messages with tags for quicker access.
+
+14. Name and Profile Colors
+    - Choose a color and logo for your profile and replies to your messages.
+
+15. Wallpaper for Both Sides
+    - Set custom wallpapers for you and your chat partner.
+
+16. Profile Badge
+    - An exclusive badge next to your name showing that you subscribe to Telegram Premium.
+
+17. Paid Messages
+    - Charge a fee for messages from non-contacts or new senders.
+
+18. Disable Sharing
+    - Prevent forwarding, saving and copying content in private chats.
+
+19. Advanced Chat Management
+    - Tools to set the default folder, auto-archive and hide new chats from non-contacts.
+
+20. No Ads
+    - No more ads in public channels where Telegram sometimes shows ads.
+
+21. Premium App Icons
+    - Choose from a selection of Telegram app icons for your homescreen.

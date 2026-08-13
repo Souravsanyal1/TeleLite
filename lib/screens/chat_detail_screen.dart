@@ -97,7 +97,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          widget.chat.isOnline ? 'online' : 'last seen recently',
+                          (widget.chat.isOnline && !widget.chat.isStealthMode) ? 'online' : 'last seen recently',
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
@@ -331,7 +331,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 if (isMe) ...[
                   const SizedBox(width: 4),
                   Icon(
-                    msg.isRead ? Icons.done_all : Icons.done,
+                    (msg.isRead && !widget.chat.isStealthMode) ? Icons.done_all : Icons.done,
                     size: 14,
                     color: TeleTheme.primary,
                   ),
