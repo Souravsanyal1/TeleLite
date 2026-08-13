@@ -12,6 +12,7 @@ class Chat {
   final bool isSecret;
   final bool isVerified;
   final bool isPinned;
+  final bool isPremium;
   final ChatCategory category;
 
   Chat({
@@ -26,6 +27,7 @@ class Chat {
     this.isSecret = false,
     this.isVerified = false,
     this.isPinned = false,
+    this.isPremium = false,
     this.category = ChatCategory.personal,
   });
 }
@@ -58,6 +60,7 @@ class Contact {
   final String phone;
   final String avatarUrl;
   final bool isOnline;
+  final bool isPremium;
   final String lastSeen;
 
   Contact({
@@ -66,6 +69,7 @@ class Contact {
     required this.phone,
     required this.avatarUrl,
     this.isOnline = false,
+    this.isPremium = false,
     this.lastSeen = 'Recently',
   });
 }

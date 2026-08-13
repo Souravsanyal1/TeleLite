@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../models/models.dart';
 import '../services/auth_service.dart';
 import '../services/mock_data.dart';
@@ -41,9 +42,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         builder: (context, snapshot) {
           final data = snapshot.data?.data();
           final currentUser = widget.authService!.currentUser;
-          final name = data?['displayName'] ?? currentUser?.displayName ?? 'TeleLite User';
-          final phone = data?['phoneNumber'] ?? currentUser?.phoneNumber ?? '+880 1700000000';
-          final username = data?['username'] != null ? '@${data!['username']}' : '@my_username';
+          final name = data?['displayName'] ??
+              currentUser?.displayName ??
+              'TeleLite User';
+          final phone = data?['phoneNumber'] ??
+              currentUser?.phoneNumber ??
+              '+880 1700000000';
+          final username = data?['username'] != null
+              ? '@${data!['username']}'
+              : '@my_username';
           final bio = data?['bio'] ?? 'Building Telegram Lite in Flutter 🚀';
           final photoUrl = data?['photoUrl'] ??
               'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
@@ -73,7 +80,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final rawPhone = widget.contact?.phone.isNotEmpty == true
         ? widget.contact!.phone
         : '+880 1712 345678';
-    final username = '@${name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')}';
+    final username =
+        '@${name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')}';
     final bio = widget.chat?.isSecret == true
         ? '🔒 End-to-end encrypted secret chat profile'
         : 'Hey there! I am using Telegram Lite.';
@@ -84,7 +92,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     if (targetUid != null && targetUid.isNotEmpty) {
       return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance.collection('users').doc(targetUid).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(targetUid)
+            .snapshots(),
         builder: (context, snapshot) {
           final data = snapshot.data?.data();
           final visibility = data?['phoneNumberVisibility'] ?? 'My Contacts';
@@ -97,7 +108,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             name: data?['displayName'] ?? name,
             subtitle: isOnline ? 'online' : 'last seen recently',
             phone: displayPhone,
-            username: data?['username'] != null ? '@${data!['username']}' : username,
+            username:
+                data?['username'] != null ? '@${data!['username']}' : username,
             bio: data?['bio'] ?? bio,
             photoUrl: data?['photoUrl'] ?? photoUrl,
             isOnline: data?['isOnline'] ?? isOnline,
@@ -112,7 +124,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     // Default fallback for mock contacts without Firestore document:
     // Phone is hidden unless privacy setting is 'Everybody'
     const defaultVisibility = 'My Contacts'; // Default is hidden
-    final displayPhone = (defaultVisibility == 'Everybody') ? rawPhone : 'Hidden';
+    final displayPhone =
+        (defaultVisibility == 'Everybody') ? rawPhone : 'Hidden';
 
     return _buildProfileBody(
       context: context,
@@ -155,14 +168,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           SliverAppBar(
             expandedHeight: 280,
             pinned: true,
-            backgroundColor: isDark ? const Color(0xFF17212B) : TeleTheme.primary,
+            backgroundColor:
+                isDark ? const Color(0xFF17212B) : TeleTheme.primary,
             actions: [
               IconButton(
                 icon: const Icon(Icons.share_outlined),
                 onPressed: () {
-                  Clipboard.setData(ClipboardData(text: '$name ($username) - TeleLite Profile'));
+                  Clipboard.setData(ClipboardData(
+                      text: '$name ($username) - TeleLite Profile'));
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Profile link copied to clipboard!')),
+                    const SnackBar(
+                        content: Text('Profile link copied to clipboard!')),
                   );
                 },
               ),
@@ -171,7 +187,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   if (value == 'block') {
                     setState(() => _isBlocked = !_isBlocked);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(_isBlocked ? 'User Blocked' : 'User Unblocked')),
+                      SnackBar(
+                          content: Text(
+                              _isBlocked ? 'User Blocked' : 'User Unblocked')),
                     );
                   } else if (value == 'edit') {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -240,7 +258,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       child: Center(
                         child: Text(
                           name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                          style: const TextStyle(fontSize: 72, color: Colors.white),
+                          style: const TextStyle(
+                              fontSize: 72, color: Colors.white),
                         ),
                       ),
                     ),
@@ -277,8 +296,37 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             if (isVerified)
                               const Padding(
                                 padding: EdgeInsets.only(left: 6),
-                                child: Icon(Icons.verified, color: Colors.lightBlueAccent, size: 22),
+                                child: Icon(Icons.verified,
+                                    color: Colors.lightBlueAccent, size: 22),
                               ),
+                            // Premium Badge
+                            StreamBuilder<
+                                DocumentSnapshot<Map<String, dynamic>>?>(
+                              stream: widget.authService?.userProfileStream,
+                              builder: (context, snapshot) {
+                                final isPrem = snapshot.data
+                                            ?.data()?['isPremium'] ==
+                                        true ||
+                                    (isCurrentUser &&
+                                        widget.dataService?.isPremium == true);
+                                if (!isPrem) return const SizedBox.shrink();
+                                return Container(
+                                  margin: const EdgeInsets.only(left: 8),
+                                  padding: const EdgeInsets.all(3),
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Color(0xFF8A2387),
+                                        Color(0xFFE94057)
+                                      ],
+                                    ),
+                                  ),
+                                  child: const Icon(Icons.star,
+                                      color: Colors.white, size: 16),
+                                );
+                              },
+                            ),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -298,8 +346,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               subtitle,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: isOnline ? Colors.greenAccent : Colors.white70,
-                                fontWeight: isOnline ? FontWeight.w600 : FontWeight.w400,
+                                color: isOnline
+                                    ? Colors.greenAccent
+                                    : Colors.white70,
+                                fontWeight: isOnline
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
                               ),
                             ),
                           ],
@@ -332,10 +384,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               label: 'Message',
                               color: TeleTheme.primary,
                               onTap: () {
-                                if (widget.chat != null && widget.dataService != null) {
+                                if (widget.chat != null &&
+                                    widget.dataService != null) {
                                   Navigator.pop(context);
-                                } else if (widget.contact != null && widget.dataService != null) {
-                                  final newChat = widget.dataService!.createSecretChat(
+                                } else if (widget.contact != null &&
+                                    widget.dataService != null) {
+                                  final newChat =
+                                      widget.dataService!.createSecretChat(
                                     name: widget.contact!.name,
                                     avatarUrl: widget.contact!.avatarUrl,
                                   );
@@ -368,14 +423,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               color: TeleTheme.primary,
                               onTap: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Starting video call with $name...')),
+                                  SnackBar(
+                                      content: Text(
+                                          'Starting video call with $name...')),
                                 );
                               },
                             ),
                             _buildActionButton(
-                              icon: _isMuted ? Icons.notifications_off_outlined : Icons.notifications_none_outlined,
+                              icon: _isMuted
+                                  ? Icons.notifications_off_outlined
+                                  : Icons.notifications_none_outlined,
                               label: _isMuted ? 'Muted' : 'Mute',
-                              color: _isMuted ? Colors.orange : TeleTheme.primary,
+                              color:
+                                  _isMuted ? Colors.orange : TeleTheme.primary,
                               onTap: () {
                                 setState(() => _isMuted = !_isMuted);
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -413,33 +473,53 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           ),
                         ),
                         ListTile(
-                          leading: const Icon(Icons.phone_outlined, color: TeleTheme.primary),
-                          title: Text(phone, style: TextStyle(color: textColor, fontWeight: FontWeight.w500)),
-                          subtitle: Text('Mobile', style: TextStyle(color: subTextColor, fontSize: 13)),
+                          leading: const Icon(Icons.phone_outlined,
+                              color: TeleTheme.primary),
+                          title: Text(phone,
+                              style: TextStyle(
+                                  color: textColor,
+                                  fontWeight: FontWeight.w500)),
+                          subtitle: Text('Mobile',
+                              style:
+                                  TextStyle(color: subTextColor, fontSize: 13)),
                           onTap: () {
                             Clipboard.setData(ClipboardData(text: phone));
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Copied phone number $phone')),
+                              SnackBar(
+                                  content: Text('Copied phone number $phone')),
                             );
                           },
                         ),
                         const Divider(height: 1, indent: 56),
                         ListTile(
-                          leading: const Icon(Icons.alternate_email, color: TeleTheme.primary),
-                          title: Text(username, style: TextStyle(color: textColor, fontWeight: FontWeight.w500)),
-                          subtitle: Text('Username', style: TextStyle(color: subTextColor, fontSize: 13)),
+                          leading: const Icon(Icons.alternate_email,
+                              color: TeleTheme.primary),
+                          title: Text(username,
+                              style: TextStyle(
+                                  color: textColor,
+                                  fontWeight: FontWeight.w500)),
+                          subtitle: Text('Username',
+                              style:
+                                  TextStyle(color: subTextColor, fontSize: 13)),
                           onTap: () {
                             Clipboard.setData(ClipboardData(text: username));
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Copied username $username')),
+                              SnackBar(
+                                  content: Text('Copied username $username')),
                             );
                           },
                         ),
                         const Divider(height: 1, indent: 56),
                         ListTile(
-                          leading: const Icon(Icons.info_outline, color: TeleTheme.primary),
-                          title: Text(bio, style: TextStyle(color: textColor, fontWeight: FontWeight.w400)),
-                          subtitle: Text('Bio', style: TextStyle(color: subTextColor, fontSize: 13)),
+                          leading: const Icon(Icons.info_outline,
+                              color: TeleTheme.primary),
+                          title: Text(bio,
+                              style: TextStyle(
+                                  color: textColor,
+                                  fontWeight: FontWeight.w400)),
+                          subtitle: Text('Bio',
+                              style:
+                                  TextStyle(color: subTextColor, fontSize: 13)),
                         ),
                       ],
                     ),
@@ -458,29 +538,35 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           activeThumbColor: TeleTheme.primary,
                           title: const Text(
                             'Notifications',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                            style: TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w500),
                           ),
                           subtitle: Text(
                             _isMuted ? 'Muted' : 'Enabled',
                             style: TextStyle(color: subTextColor, fontSize: 13),
                           ),
-                          secondary: const Icon(Icons.notifications_active_outlined, color: TeleTheme.primary),
+                          secondary: const Icon(
+                              Icons.notifications_active_outlined,
+                              color: TeleTheme.primary),
                           onChanged: (val) {
                             setState(() => _isMuted = !val);
                           },
                         ),
                         const Divider(height: 1, indent: 56),
                         ListTile(
-                          leading: const Icon(Icons.lock_outline, color: Colors.green),
+                          leading: const Icon(Icons.lock_outline,
+                              color: Colors.green),
                           title: const Text(
                             'Encryption',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                            style: TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w500),
                           ),
                           subtitle: Text(
                             'Messages and calls are end-to-end encrypted',
                             style: TextStyle(color: subTextColor, fontSize: 13),
                           ),
-                          trailing: const Icon(Icons.verified_user, color: Colors.green, size: 20),
+                          trailing: const Icon(Icons.verified_user,
+                              color: Colors.green, size: 20),
                         ),
                       ],
                     ),
@@ -509,7 +595,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               ),
                               Text(
                                 '12 photos',
-                                style: TextStyle(color: subTextColor, fontSize: 13),
+                                style: TextStyle(
+                                    color: subTextColor, fontSize: 13),
                               ),
                             ],
                           ),
@@ -533,7 +620,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(10),
                                     image: DecorationImage(
-                                      image: NetworkImage(sampleImages[index % sampleImages.length]),
+                                      image: NetworkImage(sampleImages[
+                                          index % sampleImages.length]),
                                       fit: BoxFit.cover,
                                     ),
                                   ),

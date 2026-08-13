@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
 import 'sms_service.dart';
 
 class AuthService extends ChangeNotifier {
@@ -18,7 +19,8 @@ class AuthService extends ChangeNotifier {
   // Send real SMS OTP via sms.net.bd Gateway
   Future<SmsNetBdResult> sendSmsNetBdOtp(String phoneNumber) async {
     _activePhoneNumber = SmsNetBdService.formatPhoneNumber(phoneNumber);
-    final result = await SmsNetBdService.sendOtpSms(phoneNumber: _activePhoneNumber!);
+    final result =
+        await SmsNetBdService.sendOtpSms(phoneNumber: _activePhoneNumber!);
     if (result.isSuccess && result.otpCode != null) {
       _activeOtpCode = result.otpCode;
       debugPrint('Generated SMS OTP: $_activeOtpCode for $_activePhoneNumber');
@@ -109,13 +111,19 @@ class AuthService extends ChangeNotifier {
   }
 
   // Find a registered user by phone number
-  Future<DocumentSnapshot<Map<String, dynamic>>?> findUserByPhoneNumber(String phone) async {
+  Future<DocumentSnapshot<Map<String, dynamic>>?> findUserByPhoneNumber(
+      String phone) async {
     final cleanPhone = phone.replaceAll(RegExp(r'\D'), '');
     try {
       final snap = await _firestore.collection('users').get();
       for (var doc in snap.docs) {
-        final dbPhone = (doc.data()['phoneNumber'] ?? '').toString().replaceAll(RegExp(r'\D'), '');
-        if (dbPhone.isNotEmpty && (dbPhone == cleanPhone || cleanPhone.endsWith(dbPhone) || dbPhone.endsWith(cleanPhone))) {
+        final dbPhone = (doc.data()['phoneNumber'] ?? '')
+            .toString()
+            .replaceAll(RegExp(r'\D'), '');
+        if (dbPhone.isNotEmpty &&
+            (dbPhone == cleanPhone ||
+                cleanPhone.endsWith(dbPhone) ||
+                dbPhone.endsWith(cleanPhone))) {
           return doc;
         }
       }
@@ -129,7 +137,8 @@ class AuthService extends ChangeNotifier {
 
   bool hasCompletedProfile(DocumentSnapshot<Map<String, dynamic>>? doc) {
     if (_isProfileCompletedLocally) return true;
-    if (currentUser?.displayName != null && currentUser!.displayName!.trim().isNotEmpty) return true;
+    if (currentUser?.displayName != null &&
+        currentUser!.displayName!.trim().isNotEmpty) return true;
     if (doc != null && doc.exists) return true;
     return false;
   }
@@ -154,7 +163,8 @@ class AuthService extends ChangeNotifier {
       'phoneNumber': _activePhoneNumber ?? user.phoneNumber ?? '',
       'username': cleanUsername,
       'displayName': name.trim(),
-      'photoUrl': photoUrl ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      'photoUrl': photoUrl ??
+          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
       'bio': bio?.trim() ?? 'Hey there! I am using TeleLite.',
       'lastSeen': now,
       'isOnline': true,
@@ -203,6 +213,20 @@ class AuthService extends ChangeNotifier {
       debugPrint('Firestore userProfileStream error: $error');
       return null;
     });
+  }
+
+  Future<void> updatePremiumStatus(bool isPremium) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    try {
+      await _firestore.collection('users').doc(user.uid).set({
+        'isPremium': isPremium,
+        'premiumSubscribedAt': DateTime.now().toIso8601String(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore updatePremiumStatus error: $e');
+    }
+    notifyListeners();
   }
 
   Future<void> signOut() async {

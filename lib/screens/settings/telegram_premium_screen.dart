@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../services/auth_service.dart';
 import '../../services/mock_data.dart';
-import '../../theme/app_theme.dart';
 
 class PremiumFeature {
   final String title;
@@ -71,7 +71,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
         'X2',
         style: TextStyle(
           color: Colors.white,
-          fontWeight: FontWeight.black,
+          fontWeight: FontWeight.w900,
           fontSize: 13,
         ),
       ),
@@ -152,8 +152,7 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
     ),
     PremiumFeature(
       title: 'Tags in Saved Messages',
-      description:
-          'Organize your Saved Messages with tags for quicker access.',
+      description: 'Organize your Saved Messages with tags for quicker access.',
       icon: Icons.local_offer_rounded,
       iconBgColor: Color(0xFFAB47BC),
       category: 'Organization',
@@ -349,7 +348,11 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF8A2387), Color(0xFFE94057), Color(0xFFF27121)],
+                      colors: [
+                        Color(0xFF8A2387),
+                        Color(0xFFE94057),
+                        Color(0xFFF27121)
+                      ],
                     ),
                     boxShadow: [
                       BoxShadow(
@@ -608,7 +611,8 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Text('0:14', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  const Text('0:14',
+                      style: TextStyle(color: Colors.white70, fontSize: 12)),
                 ],
               ),
             ),
@@ -626,7 +630,10 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                   Expanded(
                     child: Text(
                       'Transcript: "Hey! Meeting is rescheduled to 4 PM today at main hall."',
-                      style: TextStyle(color: Colors.white, fontSize: 13, fontStyle: FontStyle.italic),
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontStyle: FontStyle.italic),
                     ),
                   ),
                 ],
@@ -643,19 +650,22 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
                 Chip(
                   label: const Text('Formal Tone'),
                   backgroundColor: const Color(0xFF4CAF50).withAlpha(50),
-                  labelStyle: const TextStyle(color: Colors.lightGreenAccent, fontSize: 11),
+                  labelStyle: const TextStyle(
+                      color: Colors.lightGreenAccent, fontSize: 11),
                 ),
                 const SizedBox(width: 6),
                 Chip(
                   label: const Text('Summarize'),
                   backgroundColor: Colors.blue.withAlpha(50),
-                  labelStyle: const TextStyle(color: Colors.lightBlueAccent, fontSize: 11),
+                  labelStyle: const TextStyle(
+                      color: Colors.lightBlueAccent, fontSize: 11),
                 ),
                 const SizedBox(width: 6),
                 Chip(
                   label: const Text('Translate'),
                   backgroundColor: Colors.purple.withAlpha(50),
-                  labelStyle: const TextStyle(color: Colors.purpleAccent, fontSize: 11),
+                  labelStyle:
+                      const TextStyle(color: Colors.purpleAccent, fontSize: 11),
                 ),
               ],
             ),
@@ -679,12 +689,16 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
           children: [
             const CircleAvatar(
               radius: 20,
-              backgroundImage: NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'),
+              backgroundImage: NetworkImage(
+                  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'),
             ),
             const SizedBox(width: 12),
             const Text(
               'User Profile',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15),
             ),
             const SizedBox(width: 6),
             Container(
@@ -698,7 +712,11 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
               child: const Icon(Icons.star, color: Colors.white, size: 14),
             ),
             const Spacer(),
-            const Text('PREMIUM', style: TextStyle(color: Color(0xFF5C6BC0), fontWeight: FontWeight.bold, fontSize: 11)),
+            const Text('PREMIUM',
+                style: TextStyle(
+                    color: Color(0xFF5C6BC0),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11)),
           ],
         );
 
@@ -720,460 +738,471 @@ class _TelegramPremiumScreenState extends State<TelegramPremiumScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isPremium = widget.dataService.isPremium;
+    return AnimatedBuilder(
+      animation: widget.dataService,
+      builder: (context, _) {
+        final isPremium = widget.dataService.isPremium;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0E1621),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0E1621),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Telegram Premium',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
+        return Scaffold(
+          backgroundColor: const Color(0xFF0E1621),
+          appBar: AppBar(
+            backgroundColor: const Color(0xFF0E1621),
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: const Text(
+              'Telegram Premium',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
           ),
-        ),
-      ),
-      body: Stack(
-        children: [
-          // Main Scroll View
-          SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
+          body: Stack(
+            children: [
+              // Main Scroll View
+              SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
 
-                // Hero Header with Glowing Gradient Animated Star
-                Center(
-                  child: ScaleTransition(
-                    scale: Tween<double>(begin: 0.95, end: 1.05).animate(
-                      CurvedAnimation(
-                        parent: _starAnimController,
-                        curve: Curves.easeInOut,
+                    // Hero Header with Glowing Gradient Animated Star
+                    Center(
+                      child: ScaleTransition(
+                        scale: Tween<double>(begin: 0.95, end: 1.05).animate(
+                          CurvedAnimation(
+                            parent: _starAnimController,
+                            curve: Curves.easeInOut,
+                          ),
+                        ),
+                        child: Container(
+                          width: 140,
+                          height: 140,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF9C27B0).withAlpha(100),
+                                blurRadius: 40,
+                                spreadRadius: 10,
+                              ),
+                              BoxShadow(
+                                color: const Color(0xFF0088CC).withAlpha(80),
+                                blurRadius: 30,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              ShaderMask(
+                                shaderCallback: (bounds) =>
+                                    const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFFC2185B),
+                                    Color(0xFF8E24AA),
+                                    Color(0xFF29B6F6),
+                                  ],
+                                ).createShader(bounds),
+                                child: const Icon(
+                                  Icons.star_rounded,
+                                  size: 130,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    child: Container(
-                      width: 140,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF9C27B0).withAlpha(100),
-                            blurRadius: 40,
-                            spreadRadius: 10,
-                          ),
-                          BoxShadow(
-                            color: const Color(0xFF0088CC).withAlpha(80),
-                            blurRadius: 30,
-                            spreadRadius: 5,
-                          ),
-                        ],
+
+                    const SizedBox(height: 16),
+
+                    // Title & Subtitle
+                    const Text(
+                      'Telegram Premium',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: -0.3,
                       ),
-                      child: Stack(
-                        alignment: Alignment.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        'Go beyond the limits and unlock dozens of exclusive features by subscribing to Telegram Premium.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[400],
+                          height: 1.35,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Subscription Plan Selection Card
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF17212B),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white.withAlpha(20)),
+                      ),
+                      child: Column(
                         children: [
-                          ShaderMask(
-                            shaderCallback: (bounds) => const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFFC2185B),
-                                Color(0xFF8E24AA),
-                                Color(0xFF29B6F6),
-                              ],
-                            ).createShader(bounds),
-                            child: const Icon(
-                              Icons.star_rounded,
-                              size: 130,
-                              color: Colors.white,
+                          // Annual Option
+                          InkWell(
+                            onTap: () {
+                              setState(() => _isAnnualSelected = true);
+                            },
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    _isAnnualSelected
+                                        ? Icons.check_circle_rounded
+                                        : Icons.radio_button_unchecked,
+                                    color: _isAnnualSelected
+                                        ? const Color(0xFF2EA6FF)
+                                        : Colors.grey[600],
+                                    size: 24,
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            const Text(
+                                              'Annual',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 6,
+                                                vertical: 2,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF2EA6FF),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: const Text(
+                                                '-29%',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: 'BDT5,400.00 ',
+                                                style: TextStyle(
+                                                  decoration: TextDecoration
+                                                      .lineThrough,
+                                                  color: Colors.grey[500],
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                              const TextSpan(
+                                                text: 'BDT3,800.00/year',
+                                                style: TextStyle(
+                                                  color: Colors.white70,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    'BDT316.67/month',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[300],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          Divider(
+                            height: 1,
+                            color: Colors.white.withAlpha(20),
+                            indent: 16,
+                            endIndent: 16,
+                          ),
+
+                          // Monthly Option
+                          InkWell(
+                            onTap: () {
+                              setState(() => _isAnnualSelected = false);
+                            },
+                            borderRadius: const BorderRadius.vertical(
+                              bottom: Radius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    !_isAnnualSelected
+                                        ? Icons.check_circle_rounded
+                                        : Icons.radio_button_unchecked,
+                                    color: !_isAnnualSelected
+                                        ? const Color(0xFF2EA6FF)
+                                        : Colors.grey[600],
+                                    size: 24,
+                                  ),
+                                  const SizedBox(width: 14),
+                                  const Expanded(
+                                    child: Text(
+                                      'Monthly',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    'BDT450.00/month',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[300],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ),
 
-                const SizedBox(height: 16),
+                    const SizedBox(height: 24),
 
-                // Title & Subtitle
-                const Text(
-                  'Telegram Premium',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    'Go beyond the limits and unlock dozens of exclusive features by subscribing to Telegram Premium.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[400],
-                      height: 1.35,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Subscription Plan Selection Card
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF17212B),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withAlpha(20)),
-                  ),
-                  child: Column(
-                    children: [
-                      // Annual Option
-                      InkWell(
-                        onTap: () {
-                          setState(() => _isAnnualSelected = true);
-                        },
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16),
+                    // Premium Features List Card
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF17212B),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white.withAlpha(20)),
+                      ),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _features.length,
+                        separatorBuilder: (context, index) => Divider(
+                          height: 1,
+                          color: Colors.white.withAlpha(15),
+                          indent: 68,
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              Icon(
-                                _isAnnualSelected
-                                    ? Icons.check_circle_rounded
-                                    : Icons.radio_button_unchecked,
-                                color: _isAnnualSelected
-                                    ? const Color(0xFF2EA6FF)
-                                    : Colors.grey[600],
-                                size: 24,
+                        itemBuilder: (context, index) {
+                          final feat = _features[index];
+                          return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
+                            ),
+                            leading: Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: feat.iconBgColor,
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'Annual',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF2EA6FF),
-                                            borderRadius:
-                                                BorderRadius.circular(6),
-                                          ),
-                                          child: const Text(
-                                            '-29%',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                              child: Center(
+                                child: feat.customIconWidget ??
+                                    Icon(
+                                      feat.icon,
+                                      color: Colors.white,
+                                      size: 20,
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          TextSpan(
-                                            text: 'BDT5,400.00 ',
-                                            style: TextStyle(
-                                              decoration:
-                                                  TextDecoration.lineThrough,
-                                              color: Colors.grey[500],
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                          const TextSpan(
-                                            text: 'BDT3,800.00/year',
-                                            style: TextStyle(
-                                              color: Colors.white70,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
                               ),
-                              Text(
-                                'BDT316.67/month',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[300],
-                                ),
+                            ),
+                            title: Text(
+                              feat.title,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      Divider(
-                        height: 1,
-                        color: Colors.white.withAlpha(20),
-                        indent: 16,
-                        endIndent: 16,
-                      ),
-
-                      // Monthly Option
-                      InkWell(
-                        onTap: () {
-                          setState(() => _isAnnualSelected = false);
+                            ),
+                            subtitle: Text(
+                              feat.description,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[400],
+                                height: 1.3,
+                              ),
+                            ),
+                            trailing: Icon(
+                              Icons.chevron_right,
+                              color: Colors.grey[600],
+                            ),
+                            onTap: () => _openFeatureDemo(feat),
+                          );
                         },
-                        borderRadius: const BorderRadius.vertical(
-                          bottom: Radius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              Icon(
-                                !_isAnnualSelected
-                                    ? Icons.check_circle_rounded
-                                    : Icons.radio_button_unchecked,
-                                color: !_isAnnualSelected
-                                    ? const Color(0xFF2EA6FF)
-                                    : Colors.grey[600],
-                                size: 24,
-                              ),
-                              const SizedBox(width: 14),
-                              const Expanded(
-                                child: Text(
-                                  'Monthly',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                'BDT450.00/month',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[300],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Premium Features List Card
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF17212B),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withAlpha(20)),
-                  ),
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _features.length,
-                    separatorBuilder: (context, index) => Divider(
-                      height: 1,
-                      color: Colors.white.withAlpha(15),
-                      indent: 68,
                     ),
-                    itemBuilder: (context, index) {
-                      final feat = _features[index];
-                      return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
-                        leading: Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: feat.iconBgColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Center(
-                            child: feat.customIconWidget ??
-                                Icon(
-                                  feat.icon,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                          ),
-                        ),
-                        title: Text(
-                          feat.title,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        subtitle: Text(
-                          feat.description,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[400],
-                            height: 1.3,
-                          ),
-                        ),
-                        trailing: Icon(
-                          Icons.chevron_right,
-                          color: Colors.grey[600],
-                        ),
-                        onTap: () => _openFeatureDemo(feat),
-                      );
-                    },
-                  ),
-                ),
 
-                const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                // Terms of Service Disclaimer
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text.rich(
-                    TextSpan(
-                      text:
-                          'By subscribing to Telegram Premium you agree to the ',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                      children: const [
-                        TextSpan(
-                          text: 'Telegram Terms of Service',
-                          style: TextStyle(
-                            color: Color(0xFF2EA6FF),
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                        TextSpan(text: ' and '),
-                        TextSpan(
-                          text: 'Privacy Policy',
-                          style: TextStyle(
-                            color: Color(0xFF2EA6FF),
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
+                    // Terms of Service Disclaimer
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text.rich(
                         TextSpan(
                           text:
-                              '. Subscriptions auto-renew unless canceled via your Google Play settings.',
+                              'By subscribing to Telegram Premium you agree to the ',
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey[500]),
+                          children: const [
+                            TextSpan(
+                              text: 'Telegram Terms of Service',
+                              style: TextStyle(
+                                color: Color(0xFF2EA6FF),
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                            TextSpan(text: ' and '),
+                            TextSpan(
+                              text: 'Privacy Policy',
+                              style: TextStyle(
+                                color: Color(0xFF2EA6FF),
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                            TextSpan(
+                              text:
+                                  '. Subscriptions auto-renew unless canceled via your Google Play settings.',
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+
+              // Bottom Sticky Subscription Button
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        const Color(0xFF0E1621).withAlpha(0),
+                        const Color(0xFF0E1621).withAlpha(230),
+                        const Color(0xFF0E1621),
+                      ],
+                    ),
+                  ),
+                  child: Container(
+                    height: 52,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF8A2387),
+                          Color(0xFFE94057),
+                          Color(0xFFF27121),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFE94057).withAlpha(100),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-
-          // Bottom Sticky Subscription Button
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    const Color(0xFF0E1621).withAlpha(0),
-                    const Color(0xFF0E1621).withAlpha(230),
-                    const Color(0xFF0E1621),
-                  ],
-                ),
-              ),
-              child: Container(
-                height: 52,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFF8A2387),
-                      Color(0xFFE94057),
-                      Color(0xFFF27121),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFE94057).withAlpha(100),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  onPressed: (_isSubscribing || isPremium) ? null : _handleSubscribe,
-                  child: _isSubscribing
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.5,
-                          ),
-                        )
-                      : Text(
-                          isPremium
-                              ? '★ You are a Telegram Premium Subscriber'
-                              : (_isAnnualSelected
-                                  ? 'Subscribe for BDT3,800.00 per year'
-                                  : 'Subscribe for BDT450.00 per month'),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
+                      ),
+                      onPressed: (_isSubscribing || isPremium)
+                          ? null
+                          : _handleSubscribe,
+                      child: _isSubscribing
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : Text(
+                              isPremium
+                                  ? '★ You are a Telegram Premium Subscriber'
+                                  : (_isAnnualSelected
+                                      ? 'Subscribe for BDT3,800.00 per year'
+                                      : 'Subscribe for BDT450.00 per month'),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

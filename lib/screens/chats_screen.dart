@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/models.dart';
 import '../services/mock_data.dart';
 import '../theme/app_theme.dart';
@@ -20,10 +21,12 @@ class _ChatsScreenState extends State<ChatsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     // Filter chats based on category and search query
     final filteredChats = widget.dataService.chats.where((chat) {
-      final matchesSearch = chat.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+      final matchesSearch = chat.name
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase()) ||
           chat.lastMessage.toLowerCase().contains(_searchQuery.toLowerCase());
 
       if (!matchesSearch) return false;
@@ -44,7 +47,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
             child: Container(
               height: 44,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF262D36) : const Color(0xFFEBEFEF),
+                color:
+                    isDark ? const Color(0xFF262D36) : const Color(0xFFEBEFEF),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: TextField(
@@ -83,7 +87,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 ? Center(
                     child: Text(
                       'No chats found',
-                      style: TextStyle(color: isDark ? Colors.grey : Colors.grey[600]),
+                      style: TextStyle(
+                          color: isDark ? Colors.grey : Colors.grey[600]),
                     ),
                   )
                 : ListView.builder(
@@ -121,7 +126,11 @@ class _ChatsScreenState extends State<ChatsScreen> {
         },
         selectedColor: TeleTheme.primary,
         labelStyle: TextStyle(
-          color: isSelected ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87),
+          color: isSelected
+              ? Colors.white
+              : (Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white70
+                  : Colors.black87),
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           fontSize: 13,
         ),
@@ -167,7 +176,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                         color: TeleTheme.onlineSuccess,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isDark ? const Color(0xFF181C20) : Colors.white,
+                          color:
+                              isDark ? const Color(0xFF181C20) : Colors.white,
                           width: 2.5,
                         ),
                       ),
@@ -187,7 +197,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       if (chat.isSecret)
                         const Padding(
                           padding: EdgeInsets.only(right: 4),
-                          child: Icon(Icons.lock, size: 14, color: Colors.green),
+                          child:
+                              Icon(Icons.lock, size: 14, color: Colors.green),
                         ),
                       Expanded(
                         child: Text(
@@ -204,7 +215,21 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       if (chat.isVerified)
                         const Padding(
                           padding: EdgeInsets.only(left: 4),
-                          child: Icon(Icons.verified, size: 16, color: TeleTheme.primary),
+                          child: Icon(Icons.verified,
+                              size: 16, color: TeleTheme.primary),
+                        ),
+                      if (chat.isPremium)
+                        Container(
+                          margin: const EdgeInsets.only(left: 4),
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [Color(0xFF8A2387), Color(0xFFE94057)],
+                            ),
+                          ),
+                          child: const Icon(Icons.star,
+                              color: Colors.white, size: 10),
                         ),
                       const SizedBox(width: 6),
                       Text(
@@ -233,12 +258,14 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       if (chat.isPinned)
                         Padding(
                           padding: const EdgeInsets.only(left: 6),
-                          child: Icon(Icons.push_pin, size: 14, color: Colors.grey[500]),
+                          child: Icon(Icons.push_pin,
+                              size: 14, color: Colors.grey[500]),
                         ),
                       if (chat.unreadCount > 0)
                         Container(
                           margin: const EdgeInsets.only(left: 6),
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 2),
                           decoration: BoxDecoration(
                             color: TeleTheme.primary,
                             borderRadius: BorderRadius.circular(10),
