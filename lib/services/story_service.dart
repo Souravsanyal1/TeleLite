@@ -107,6 +107,20 @@ class StoryService {
     });
   }
 
+  Stream<List<Story>> getUserStories(String userId) {
+    return _firestore
+        .collection('stories')
+        .where('ownerId', isEqualTo: userId)
+        .where('expiresAt', isGreaterThan: Timestamp.fromDate(DateTime.now()))
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => Story.fromFirestore(doc))
+          .where((story) => !story.isDeleted)
+          .toList();
+    });
+  }
+
   Future<void> markStoryAsViewed(String storyId) async {
     final currentUser = _auth.currentUser;
     if (currentUser == null) return;

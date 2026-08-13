@@ -5,8 +5,11 @@ import 'package:flutter/services.dart';
 import '../models/models.dart';
 import '../services/auth_service.dart';
 import '../services/mock_data.dart';
+import '../services/story_service.dart';
 import '../theme/app_theme.dart';
 import 'chat_detail_screen.dart';
+import 'auth/edit_profile_screen.dart';
+import 'story_viewer_page.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final Chat? chat;
@@ -29,6 +32,7 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
+  final StoryService _storyService = StoryService();
   bool _isMuted = false;
   bool _isBlocked = false;
 
@@ -192,9 +196,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               _isBlocked ? 'User Blocked' : 'User Unblocked')),
                     );
                   } else if (value == 'edit') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Edit Profile screen')),
-                    );
+                    if (widget.authService != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditProfileScreen(
+                            authService: widget.authService!,
+                            currentName: name,
+                            currentUsername: username,
+                            currentBio: bio,
+                            currentPhotoUrl: photoUrl,
+                          ),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('AuthService is missing')),
+                      );
+                    }
                   } else if (value == 'share') {
                     Clipboard.setData(ClipboardData(text: '$name ($phone)'));
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -533,26 +552,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     color: cardBgColor,
                     child: Column(
                       children: [
-                        SwitchListTile(
-                          value: !_isMuted,
-                          activeThumbColor: TeleTheme.primary,
-                          title: const Text(
-                            'Notifications',
-                            style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w500),
-                          ),
-                          subtitle: Text(
-                            _isMuted ? 'Muted' : 'Enabled',
-                            style: TextStyle(color: subTextColor, fontSize: 13),
-                          ),
-                          secondary: const Icon(
-                              Icons.notifications_active_outlined,
-                              color: TeleTheme.primary),
-                          onChanged: (val) {
-                            setState(() => _isMuted = !val);
-                          },
-                        ),
-                        const Divider(height: 1, indent: 56),
                         ListTile(
                           leading: const Icon(Icons.lock_outline,
                               color: Colors.green),
@@ -573,7 +572,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                 ),
 
-                // Shared Media Preview Card
+                // Stories Grid Card
                 Container(
                   margin: const EdgeInsets.only(bottom: 24),
                   child: Material(
@@ -583,51 +582,78 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Shared Media',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                '12 photos',
-                                style: TextStyle(
-                                    color: subTextColor, fontSize: 13),
-                              ),
-                            ],
+                          const Text(
+                            'Stories',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           const SizedBox(height: 12),
-                          SizedBox(
-                            height: 80,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: 5,
-                              itemBuilder: (context, index) {
-                                final sampleImages = [
-                                  'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=150',
-                                  'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=150',
-                                  'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=150',
-                                  'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=150',
-                                  'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=150',
-                                ];
-                                return Container(
-                                  width: 80,
-                                  margin: const EdgeInsets.only(right: 8),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    image: DecorationImage(
-                                      image: NetworkImage(sampleImages[
-                                          index % sampleImages.length]),
-                                      fit: BoxFit.cover,
+                          StreamBuilder<List<Story>>(
+                            stream: _storyService.getUserStories(
+                              widget.isCurrentUser 
+                                  ? (widget.authService?.currentUser?.uid ?? '') 
+                                  : (widget.chat?.id ?? widget.contact?.id ?? ''),
+                            ),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Center(child: CircularProgressIndicator());
+                              }
+                              if (snapshot.hasError) {
+                                return const Center(child: Text('Error loading stories'));
+                              }
+                              
+                              final stories = snapshot.data ?? [];
+                              if (stories.isEmpty) {
+                                return Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 20),
+                                    child: Text(
+                                      'No active stories',
+                                      style: TextStyle(color: subTextColor),
                                     ),
                                   ),
                                 );
-                              },
-                            ),
+                              }
+
+                              return GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  crossAxisSpacing: 8,
+                                  mainAxisSpacing: 8,
+                                  childAspectRatio: 0.7,
+                                ),
+                                itemCount: stories.length,
+                                itemBuilder: (context, index) {
+                                  final story = stories[index];
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => StoryViewerPage(
+                                            stories: stories,
+                                            initialIndex: index,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        image: DecorationImage(
+                                          image: NetworkImage(story.mediaUrl),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
                           ),
                         ],
                       ),
