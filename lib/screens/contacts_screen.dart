@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/models.dart';
 import '../services/auth_service.dart';
@@ -34,6 +35,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
   }
 
   Future<void> _requestContactsPermission() async {
+    if (kIsWeb) return;
+    
     final status = await Permission.contacts.status;
     if (!status.isGranted) {
       final result = await Permission.contacts.request();

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:telegram_lite/services/auth_service.dart';
 import 'package:telegram_lite/services/mock_data.dart';
@@ -15,6 +16,8 @@ class PaymentService {
   static const String _premiumProductId = 'telegram_premium_subscription';
 
   void initialize() {
+    if (kIsWeb) return;
+    
     final purchaseUpdated = InAppPurchase.instance.purchaseStream;
     _subscription = purchaseUpdated.listen((purchaseDetailsList) {
       _listenToPurchaseUpdated(purchaseDetailsList);
@@ -26,10 +29,19 @@ class PaymentService {
   }
 
   void dispose() {
-    _subscription.cancel();
+    if (!kIsWeb) {
+      _subscription.cancel();
+    }
   }
 
   Future<void> buyPremium(BuildContext context) async {
+    if (kIsWeb) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('In-app purchases are not supported on the Web.')),
+      );
+      return;
+    }
+
     final bool available = await InAppPurchase.instance.isAvailable();
     if (!available) {
       if (context.mounted) {
