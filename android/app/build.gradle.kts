@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.example.telegram"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
