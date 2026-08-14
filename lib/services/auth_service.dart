@@ -16,13 +16,43 @@ class AuthService extends ChangeNotifier {
 
   String? get activePhoneNumber => _activePhoneNumber;
 
-  // Send real SMS OTP via sms.net.bd Gateway
+  // Store last OTP sent timestamp per phone number (10 minutes rate limit)
+  static final Map<String, DateTime> _otpCooldowns = {};
+
+  // Check remaining rate limit cooldown seconds (10 minutes = 600 seconds)
+  int getOtpCooldownSeconds(String phoneNumber) {
+    final formatted = SmsNetBdService.formatPhoneNumber(phoneNumber);
+    if (!_otpCooldowns.containsKey(formatted)) return 0;
+
+    final lastSent = _otpCooldowns[formatted]!;
+    final elapsedSeconds = DateTime.now().difference(lastSent).inSeconds;
+    final remainingSeconds = 600 - elapsedSeconds;
+    return remainingSeconds > 0 ? remainingSeconds : 0;
+  }
+
+  // Send real SMS OTP via sms.net.bd Gateway with 10-minute per-person Rate Limiting
   Future<SmsNetBdResult> sendSmsNetBdOtp(String phoneNumber) async {
     _activePhoneNumber = SmsNetBdService.formatPhoneNumber(phoneNumber);
+
+    final cooldownSeconds = getOtpCooldownSeconds(_activePhoneNumber!);
+    if (cooldownSeconds > 0) {
+      final mins = cooldownSeconds ~/ 60;
+      final secs = cooldownSeconds % 60;
+      final formattedTime =
+          '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+      return SmsNetBdResult(
+        isSuccess: false,
+        errorCode: 429,
+        message:
+            'Rate Limit Exceeded: Please wait $formattedTime ($mins min $secs sec) before requesting a new OTP.',
+      );
+    }
+
     final result =
         await SmsNetBdService.sendOtpSms(phoneNumber: _activePhoneNumber!);
     if (result.isSuccess && result.otpCode != null) {
       _activeOtpCode = result.otpCode;
+      _otpCooldowns[_activePhoneNumber!] = DateTime.now();
       debugPrint('Generated SMS OTP: $_activeOtpCode for $_activePhoneNumber');
     }
     return result;

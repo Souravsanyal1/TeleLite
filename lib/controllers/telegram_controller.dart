@@ -452,7 +452,7 @@ class TelegramController extends GetxController {
     chats.refresh();
   }
 
-  void promoteToAdmin(String chatId, String memberId) {
+  void promoteToAdmin(String chatId, String memberId, {AdminRights? rights}) {
     final index = chats.indexWhere((c) => c.id == chatId);
     if (index == -1) return;
     final newAdmins = [...chats[index].adminIds, memberId];
@@ -469,6 +469,37 @@ class TelegramController extends GetxController {
           isOnline: m.isOnline,
           isAdmin: true,
           isOwner: m.isOwner,
+          rights: rights ?? AdminRights(),
+        );
+      }
+      return m;
+    }).toList();
+
+    chats.refresh();
+  }
+
+  void updateAdminRights(String chatId, String memberId, AdminRights rights) {
+    promoteToAdmin(chatId, memberId, rights: rights);
+  }
+
+  void dismissAdmin(String chatId, String memberId) {
+    final index = chats.indexWhere((c) => c.id == chatId);
+    if (index == -1) return;
+    final newAdmins = chats[index].adminIds.where((id) => id != memberId).toList();
+    chats[index] = chats[index].copyWith(adminIds: newAdmins);
+
+    final members = groupMembers[chatId] ?? [];
+    groupMembers[chatId] = members.map((m) {
+      if (m.id == memberId) {
+        return GroupMember(
+          id: m.id,
+          name: m.name,
+          avatarUrl: m.avatarUrl,
+          username: m.username,
+          isOnline: m.isOnline,
+          isAdmin: false,
+          isOwner: m.isOwner,
+          rights: null,
         );
       }
       return m;

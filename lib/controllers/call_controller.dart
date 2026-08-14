@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:get/get.dart' hide navigator;
 import '../models/call_model.dart';
@@ -307,26 +308,39 @@ class CallController extends GetxController {
   }
 
   Future<void> endCall() async {
-    _durationTimer?.cancel();
-    _durationTimer = null;
+    try {
+      _durationTimer?.cancel();
+      _durationTimer = null;
 
-    await _peerConnection?.close();
-    _peerConnection = null;
+      localRenderer.srcObject = null;
+      remoteRenderer.srcObject = null;
 
-    _localStream?.getTracks().forEach((track) => track.stop());
-    _localStream = null;
-    _remoteStream = null;
+      await _peerConnection?.close();
+      _peerConnection = null;
 
-    if (currentCall.value != null) {
-      await _signaling.endCall(currentCall.value!.chatId);
+      _localStream?.getTracks().forEach((track) {
+        try {
+          track.stop();
+        } catch (_) {}
+      });
+      _localStream = null;
+      _remoteStream = null;
+
+      if (currentCall.value != null) {
+        try {
+          await _signaling.endCall(currentCall.value!.chatId);
+        } catch (_) {}
+      }
+
+      isCallActive.value = false;
+      isReconnecting.value = false;
+      _reconnectAttempts = 0;
+      callState.value = CallState.ended;
+      durationSeconds.value = 0;
+      currentCall.value = null;
+    } catch (e) {
+      debugPrint('endCall error: $e');
     }
-
-    isCallActive.value = false;
-    isReconnecting.value = false;
-    _reconnectAttempts = 0;
-    callState.value = CallState.ended;
-    durationSeconds.value = 0;
-    currentCall.value = null;
   }
 
   Future<void> _initializeLocalStream(bool isVideo) async {

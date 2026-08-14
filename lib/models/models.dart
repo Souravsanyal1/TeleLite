@@ -183,6 +183,54 @@ class CallItem {
   });
 }
 
+class AdminRights {
+  final bool canChangeInfo;
+  final bool canPostMessages;
+  final bool canEditMessages;
+  final bool canDeleteMessages;
+  final bool canBanUsers;
+  final bool canInviteUsers;
+  final bool canPinMessages;
+  final bool canManageCalls;
+  final bool canAddAdmins;
+
+  AdminRights({
+    this.canChangeInfo = true,
+    this.canPostMessages = true,
+    this.canEditMessages = true,
+    this.canDeleteMessages = true,
+    this.canBanUsers = true,
+    this.canInviteUsers = true,
+    this.canPinMessages = true,
+    this.canManageCalls = true,
+    this.canAddAdmins = false,
+  });
+
+  AdminRights copyWith({
+    bool? canChangeInfo,
+    bool? canPostMessages,
+    bool? canEditMessages,
+    bool? canDeleteMessages,
+    bool? canBanUsers,
+    bool? canInviteUsers,
+    bool? canPinMessages,
+    bool? canManageCalls,
+    bool? canAddAdmins,
+  }) {
+    return AdminRights(
+      canChangeInfo: canChangeInfo ?? this.canChangeInfo,
+      canPostMessages: canPostMessages ?? this.canPostMessages,
+      canEditMessages: canEditMessages ?? this.canEditMessages,
+      canDeleteMessages: canDeleteMessages ?? this.canDeleteMessages,
+      canBanUsers: canBanUsers ?? this.canBanUsers,
+      canInviteUsers: canInviteUsers ?? this.canInviteUsers,
+      canPinMessages: canPinMessages ?? this.canPinMessages,
+      canManageCalls: canManageCalls ?? this.canManageCalls,
+      canAddAdmins: canAddAdmins ?? this.canAddAdmins,
+    );
+  }
+}
+
 /// A simple member model for group/channel membership display
 class GroupMember {
   final String id;
@@ -192,6 +240,7 @@ class GroupMember {
   final bool isAdmin;
   final bool isOwner;
   final bool isOnline;
+  final AdminRights? rights;
 
   GroupMember({
     required this.id,
@@ -201,5 +250,6 @@ class GroupMember {
     this.isAdmin = false,
     this.isOwner = false,
     this.isOnline = false,
+    this.rights,
   });
 }

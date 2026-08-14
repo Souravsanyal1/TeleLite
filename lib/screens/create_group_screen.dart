@@ -166,7 +166,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen>
         // Selected chips
         if (_selectedContactIds.isNotEmpty)
           Container(
-            height: 72,
+            height: 88,
             color: isDark ? const Color(0xFF1A2330) : Colors.white,
             child: ListView(
               scrollDirection: Axis.horizontal,

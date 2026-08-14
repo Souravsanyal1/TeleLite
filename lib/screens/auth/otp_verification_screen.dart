@@ -36,8 +36,11 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   }
 
   void _startResendTimer() {
+    final cooldown = widget.authService.getOtpCooldownSeconds(widget.phoneNumber);
+    final initialCountdown = cooldown > 0 ? cooldown : 600;
+
     setState(() {
-      _resendCountdown = 45;
+      _resendCountdown = initialCountdown;
       _canResend = false;
     });
 
@@ -54,6 +57,12 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         timer.cancel();
       }
     });
+  }
+
+  String get _formattedCountdown {
+    final mins = (_resendCountdown ~/ 60).toString().padLeft(2, '0');
+    final secs = (_resendCountdown % 60).toString().padLeft(2, '0');
+    return '$mins:$secs';
   }
 
   @override
@@ -333,7 +342,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                             ),
                           )
                         : Text(
-                            'Resend in 00:${_resendCountdown.toString().padLeft(2, '0')}',
+                            'Resend in $_formattedCountdown',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: TeleTheme.primary,

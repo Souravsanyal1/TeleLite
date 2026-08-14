@@ -35,7 +35,14 @@ class CallsScreen extends StatelessWidget {
           return ListTile(
             leading: CircleAvatar(
               radius: 22,
-              backgroundImage: NetworkImage(call.avatarUrl),
+              backgroundImage:
+                  call.avatarUrl.isNotEmpty ? NetworkImage(call.avatarUrl) : null,
+              child: call.avatarUrl.isEmpty
+                  ? Text(
+                      call.name.isNotEmpty ? call.name[0].toUpperCase() : 'C',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    )
+                  : null,
             ),
             title: Text(
               call.name,

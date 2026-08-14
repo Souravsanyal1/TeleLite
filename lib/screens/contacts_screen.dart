@@ -496,7 +496,18 @@ class _ContactsScreenState extends State<ContactsScreen> {
                           children: [
                             CircleAvatar(
                               radius: 22,
-                              backgroundImage: NetworkImage(contact.avatarUrl),
+                              backgroundImage: contact.avatarUrl.isNotEmpty
+                                  ? NetworkImage(contact.avatarUrl)
+                                  : null,
+                              child: contact.avatarUrl.isEmpty
+                                  ? Text(
+                                      contact.name.isNotEmpty
+                                          ? contact.name[0].toUpperCase()
+                                          : 'U',
+                                      style:
+                                          const TextStyle(fontWeight: FontWeight.bold),
+                                    )
+                                  : null,
                             ),
                             if (contact.isOnline)
                               Positioned(

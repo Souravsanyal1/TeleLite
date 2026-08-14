@@ -108,8 +108,18 @@ class TelegramDataService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void promoteToAdmin(String chatId, String memberId) {
-    _controller.promoteToAdmin(chatId, memberId);
+  void promoteToAdmin(String chatId, String memberId, {AdminRights? rights}) {
+    _controller.promoteToAdmin(chatId, memberId, rights: rights);
+    notifyListeners();
+  }
+
+  void updateAdminRights(String chatId, String memberId, AdminRights rights) {
+    _controller.updateAdminRights(chatId, memberId, rights);
+    notifyListeners();
+  }
+
+  void dismissAdmin(String chatId, String memberId) {
+    _controller.dismissAdmin(chatId, memberId);
     notifyListeners();
   }
 

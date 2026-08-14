@@ -217,17 +217,203 @@ class _GroupManagementScreenState extends State<GroupManagementScreen>
     ).then((_) => setState(() => _chat = _latestChat));
   }
 
-  // Member removal is disabled — no deleting from groups/channels.
+  void _showAdminRightsSheet(GroupMember member) {
+    final currentRights = member.rights ?? AdminRights();
+    bool canChangeInfo = currentRights.canChangeInfo;
+    bool canPostMessages = currentRights.canPostMessages;
+    bool canEditMessages = currentRights.canEditMessages;
+    bool canDeleteMessages = currentRights.canDeleteMessages;
+    bool canBanUsers = currentRights.canBanUsers;
+    bool canInviteUsers = currentRights.canInviteUsers;
+    bool canPinMessages = currentRights.canPinMessages;
+    bool canManageCalls = currentRights.canManageCalls;
+    bool canAddAdmins = currentRights.canAddAdmins;
 
-  void _promoteToAdmin(GroupMember member) {
-    widget.dataService.promoteToAdmin(_chat.id, member.id);
-    setState(() => _chat = _latestChat);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${member.name} is now an admin!'),
-        backgroundColor: TeleTheme.primary,
-        behavior: SnackBarBehavior.floating,
+    Get.bottomSheet(
+      StatefulBuilder(
+        builder: (context, setSheetState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          final textColor = isDark ? Colors.white : Colors.black87;
+
+          return Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2330) : Colors.white,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[400],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundImage: NetworkImage(member.avatarUrl),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              member.name,
+                              style: TextStyle(
+                                color: textColor,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Text(
+                              'What can this admin do?',
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 13),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 24),
+                  _buildRightsToggle(
+                    'Change Group/Channel Info',
+                    'Edit title, photo, and description',
+                    canChangeInfo,
+                    (v) => setSheetState(() => canChangeInfo = v),
+                    textColor,
+                  ),
+                  if (_chat.isChannel)
+                    _buildRightsToggle(
+                      'Post Messages',
+                      'Post messages to the channel',
+                      canPostMessages,
+                      (v) => setSheetState(() => canPostMessages = v),
+                      textColor,
+                    ),
+                  _buildRightsToggle(
+                    'Edit Messages',
+                    'Edit messages sent by other members',
+                    canEditMessages,
+                    (v) => setSheetState(() => canEditMessages = v),
+                    textColor,
+                  ),
+                  _buildRightsToggle(
+                    'Delete Messages',
+                    'Remove messages from the group',
+                    canDeleteMessages,
+                    (v) => setSheetState(() => canDeleteMessages = v),
+                    textColor,
+                  ),
+                  _buildRightsToggle(
+                    'Ban / Remove Users',
+                    'Restrict or remove members',
+                    canBanUsers,
+                    (v) => setSheetState(() => canBanUsers = v),
+                    textColor,
+                  ),
+                  _buildRightsToggle(
+                    'Invite Users via Link',
+                    'Generate and share invite links',
+                    canInviteUsers,
+                    (v) => setSheetState(() => canInviteUsers = v),
+                    textColor,
+                  ),
+                  _buildRightsToggle(
+                    'Pin Messages',
+                    'Pin important messages to top',
+                    canPinMessages,
+                    (v) => setSheetState(() => canPinMessages = v),
+                    textColor,
+                  ),
+                  _buildRightsToggle(
+                    'Manage Live Calls / Streams',
+                    'Start and manage group voice & video calls',
+                    canManageCalls,
+                    (v) => setSheetState(() => canManageCalls = v),
+                    textColor,
+                  ),
+                  _buildRightsToggle(
+                    'Add New Admins',
+                    'Promote other members to admin',
+                    canAddAdmins,
+                    (v) => setSheetState(() => canAddAdmins = v),
+                    textColor,
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        final newRights = AdminRights(
+                          canChangeInfo: canChangeInfo,
+                          canPostMessages: canPostMessages,
+                          canEditMessages: canEditMessages,
+                          canDeleteMessages: canDeleteMessages,
+                          canBanUsers: canBanUsers,
+                          canInviteUsers: canInviteUsers,
+                          canPinMessages: canPinMessages,
+                          canManageCalls: canManageCalls,
+                          canAddAdmins: canAddAdmins,
+                        );
+                        widget.dataService.updateAdminRights(
+                            _chat.id, member.id, newRights);
+                        Get.back();
+                        Get.snackbar(
+                          'Success',
+                          'Admin rights updated for ${member.name}!',
+                          backgroundColor: Colors.green.withAlpha(200),
+                          colorText: Colors.white,
+                        );
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: TeleTheme.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Save Admin Rights'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
+      isScrollControlled: true,
+    );
+  }
+
+  Widget _buildRightsToggle(
+    String title,
+    String subtitle,
+    bool value,
+    ValueChanged<bool> onChanged,
+    Color textColor,
+  ) {
+    return SwitchListTile(
+      value: value,
+      onChanged: onChanged,
+      activeTrackColor: TeleTheme.primary,
+      title: Text(title,
+          style: TextStyle(
+              color: textColor, fontSize: 15, fontWeight: FontWeight.w600)),
+      subtitle: Text(subtitle,
+          style: const TextStyle(color: Colors.grey, fontSize: 12)),
+      contentPadding: EdgeInsets.zero,
     );
   }
 
@@ -562,23 +748,81 @@ class _GroupManagementScreenState extends State<GroupManagementScreen>
                             _roleBadge('Owner', const Color(0xFFE91E63))
                           else if (m.isAdmin)
                             _roleBadge('Admin', TeleTheme.primary),
-                          if (!m.isOwner && m.id != 'me' && !m.isAdmin)
+                          if (!m.isOwner && m.id != 'me')
                             PopupMenuButton<String>(
                               icon: Icon(Icons.more_vert, color: subColor),
                               itemBuilder: (_) => [
-                                const PopupMenuItem(
+                                if (!m.isAdmin)
+                                  const PopupMenuItem(
                                     value: 'promote',
                                     child: Row(
                                       children: [
                                         Icon(Icons.admin_panel_settings,
                                             color: TeleTheme.primary, size: 18),
                                         SizedBox(width: 8),
-                                        Text('Make Admin'),
+                                        Text('Promote to Admin'),
                                       ],
-                                    )),
+                                    ),
+                                  ),
+                                if (m.isAdmin)
+                                  const PopupMenuItem(
+                                    value: 'rights',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.admin_panel_settings,
+                                            color: TeleTheme.primary, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Admin Permissions'),
+                                      ],
+                                    ),
+                                  ),
+                                if (m.isAdmin)
+                                  const PopupMenuItem(
+                                    value: 'dismiss',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.remove_moderator,
+                                            color: Colors.orange, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Dismiss Admin'),
+                                      ],
+                                    ),
+                                  ),
+                                const PopupMenuItem(
+                                  value: 'remove',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.person_remove,
+                                          color: Colors.red, size: 18),
+                                      SizedBox(width: 8),
+                                      Text('Remove Member'),
+                                    ],
+                                  ),
+                                ),
                               ],
                               onSelected: (v) {
-                                if (v == 'promote') _promoteToAdmin(m);
+                                if (v == 'promote' || v == 'rights') {
+                                  _showAdminRightsSheet(m);
+                                } else if (v == 'dismiss') {
+                                  widget.dataService
+                                      .dismissAdmin(_chat.id, m.id);
+                                  Get.snackbar(
+                                    'Admin Dismissed',
+                                    '${m.name} is no longer an admin.',
+                                    backgroundColor:
+                                        Colors.orange.withAlpha(200),
+                                    colorText: Colors.white,
+                                  );
+                                } else if (v == 'remove') {
+                                  widget.dataService
+                                      .removeMemberFromGroup(_chat.id, m.id);
+                                  Get.snackbar(
+                                    'Member Removed',
+                                    '${m.name} was removed from the group.',
+                                    backgroundColor: Colors.red.withAlpha(200),
+                                    colorText: Colors.white,
+                                  );
+                                }
                               },
                             ),
                         ],
