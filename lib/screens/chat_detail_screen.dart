@@ -111,6 +111,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       chatId: widget.chat.id,
       isVideo: isVideo,
       isCaller: true,
+      calleeName: widget.chat.name,
+      calleeAvatarUrl: widget.chat.avatarUrl,
     ));
   }
 

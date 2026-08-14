@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/telegram_controller.dart';
 import '../services/mock_data.dart';
 import '../theme/app_theme.dart';
+import 'call_screen.dart';
 
 class CallsScreen extends StatelessWidget {
   final TelegramDataService dataService;
@@ -67,8 +68,25 @@ class CallsScreen extends StatelessWidget {
                 call.isVideo ? Icons.videocam_outlined : Icons.phone_outlined,
                 color: TeleTheme.primary,
               ),
-              onPressed: () {},
+              onPressed: () {
+                Get.to(() => CallScreen(
+                      chatId: call.id,
+                      isVideo: call.isVideo,
+                      isCaller: true,
+                      calleeName: call.name,
+                      calleeAvatarUrl: call.avatarUrl,
+                    ));
+              },
             ),
+            onTap: () {
+              Get.to(() => CallScreen(
+                    chatId: call.id,
+                    isVideo: call.isVideo,
+                    isCaller: true,
+                    calleeName: call.name,
+                    calleeAvatarUrl: call.avatarUrl,
+                  ));
+            },
           );
         },
       ),

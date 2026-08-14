@@ -8,12 +8,16 @@ class CallScreen extends StatefulWidget {
   final String chatId;
   final bool isVideo;
   final bool isCaller;
+  final String? calleeName;
+  final String? calleeAvatarUrl;
 
   const CallScreen({
     super.key,
     required this.chatId,
     required this.isVideo,
     required this.isCaller,
+    this.calleeName,
+    this.calleeAvatarUrl,
   });
 
   @override
@@ -103,6 +107,8 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   Widget _buildHeader(CallState callState) {
+    final name = widget.calleeName ?? 'Calling...';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -113,9 +119,9 @@ class _CallScreenState extends State<CallScreen> {
           ),
           const Spacer(),
           if (callState == CallState.ringing)
-            const Text(
-              'Calling...',
-              style: TextStyle(color: Colors.white70),
+            Text(
+              'Calling $name...',
+              style: const TextStyle(color: Colors.white70),
             ),
           if (callState == CallState.connecting)
             const Text(
@@ -162,17 +168,26 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   Widget _buildAvatarView(CallState callState) {
+    final name = widget.calleeName ?? 'TeleLite User';
+    final avatarUrl = widget.calleeAvatarUrl ?? '';
+
     return Column(
       children: [
         CircleAvatar(
           radius: 70,
           backgroundColor: Colors.grey[800],
-          child: const Icon(Icons.person, size: 70, color: Colors.white),
+          backgroundImage: avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
+          child: avatarUrl.isEmpty
+              ? Text(
+                  name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                  style: const TextStyle(fontSize: 48, color: Colors.white),
+                )
+              : null,
         ),
         const SizedBox(height: 16),
-        const Text(
-          'Caller Name',
-          style: TextStyle(
+        Text(
+          name,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -276,7 +291,11 @@ class _CallScreenState extends State<CallScreen> {
         backgroundColor: color == Colors.red
             ? Colors.red
             : Colors.white.withAlpha(51),
-        child: Icon(icon, color: color, size: size * 0.5),
+        child: Icon(
+          icon,
+          color: color == Colors.red ? Colors.white : color,
+          size: size * 0.5,
+        ),
       ),
     );
   }
