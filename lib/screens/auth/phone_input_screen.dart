@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import 'otp_verification_screen.dart';
-import 'email_login_screen.dart';
+
 
 class PhoneInputScreen extends StatefulWidget {
   final AuthService authService;
@@ -144,15 +144,6 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.grey),
-            tooltip: 'Admin Portal Login',
-            onPressed: () {
-              Get.to(() => EmailLoginScreen(authService: widget.authService));
-            },
-          ),
-        ],
       ),
       body: SafeArea(
         child: Center(

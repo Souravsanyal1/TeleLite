@@ -15,7 +15,7 @@ import 'package:telegram_lite/screens/settings/telegram_premium_screen.dart';
 import 'package:telegram_lite/screens/settings/saved_messages_screen.dart';
 import 'package:telegram_lite/screens/settings/story_settings_page.dart';
 import 'package:telegram_lite/screens/user_profile_screen.dart';
-import 'package:telegram_lite/screens/admin/admin_navigation_screen.dart';
+
 
 class SettingsScreen extends StatelessWidget {
   final TelegramDataService dataService;
@@ -233,16 +233,6 @@ class SettingsScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 12),
-
-              _buildSettingsTile(
-                context: context,
-                icon: Icons.admin_panel_settings,
-                iconColor: Colors.deepPurple,
-                title: 'Admin Panel',
-                subtitle: 'Manage users, reports & Telegram Bot',
-                isDark: isDark,
-                page: const AdminNavigationScreen(),
-              ),
 
               // General Settings Section
               _buildSectionHeader('General Settings', isDark),

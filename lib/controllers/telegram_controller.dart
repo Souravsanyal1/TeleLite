@@ -447,12 +447,12 @@ class TelegramController extends GetxController {
     required String text,
     String? mediaUrl,
   }) {
-    final chatId = 'telelite_support';
+    final chatId = 'c0'; // TeleLite Official chat ID in active chats
     final nowTime =
         '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}';
 
     final officialMsg = Message(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: 'official_${DateTime.now().millisecondsSinceEpoch}',
       chatId: chatId,
       senderName: 'TeleLite Official',
       text: text.trim(),
@@ -464,10 +464,10 @@ class TelegramController extends GetxController {
 
     if (chatMessages.containsKey(chatId)) {
       chatMessages[chatId]!.add(officialMsg);
-      chatMessages.refresh();
     } else {
       chatMessages[chatId] = [officialMsg];
     }
+    chatMessages.refresh();
 
     final index = chats.indexWhere((c) => c.id == chatId);
     if (index != -1) {
@@ -475,17 +475,32 @@ class TelegramController extends GetxController {
       chats.insert(
         0,
         old.copyWith(
-          lastMessage: text.trim().isNotEmpty ? text.trim() : '📷 Photo',
+          lastMessage: text.trim().isNotEmpty ? text.trim() : '📷 Photo Attachment',
           time: nowTime,
           unreadCount: old.unreadCount + 1,
         ),
       );
+    } else {
+      chats.insert(
+        0,
+        Chat(
+          id: chatId,
+          name: 'TeleLite Official',
+          avatarUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150',
+          lastMessage: text.trim().isNotEmpty ? text.trim() : '📷 Photo Attachment',
+          time: nowTime,
+          isVerified: true,
+          isOfficial: true,
+          unreadCount: 1,
+        ),
+      );
     }
+    chats.refresh();
 
     NotificationService.showInAppNotification(
       title: 'TeleLite Official Notice',
-      body: text,
-      avatarUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150',
+      body: text.isNotEmpty ? text : 'Attached a new official photo',
+      avatarUrl: mediaUrl ?? 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150',
     );
   }
 
@@ -494,12 +509,13 @@ class TelegramController extends GetxController {
     required String body,
     String? mediaUrl,
   }) {
-    for (var chat in chats) {
-      final nowTime =
-          '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}';
+    final nowTime =
+        '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}';
 
+    for (var i = 0; i < chats.length; i++) {
+      final chat = chats[i];
       final broadcastMsg = Message(
-        id: 'broadcast_${DateTime.now().millisecondsSinceEpoch}',
+        id: 'broadcast_${DateTime.now().millisecondsSinceEpoch}_$i',
         chatId: chat.id,
         senderName: '📢 $title',
         text: body,
@@ -513,9 +529,22 @@ class TelegramController extends GetxController {
       } else {
         chatMessages[chat.id] = [broadcastMsg];
       }
+
+      chats[i] = chat.copyWith(
+        lastMessage: '📢 $title: ${body.isNotEmpty ? body : "Photo"}',
+        time: nowTime,
+        unreadCount: chat.unreadCount + 1,
+      );
     }
 
     chatMessages.refresh();
+    chats.refresh();
+
+    NotificationService.showInAppNotification(
+      title: '📢 $title',
+      body: body,
+      avatarUrl: mediaUrl,
+    );
 
     NotificationService().notify(
       title: title,

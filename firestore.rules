@@ -2,77 +2,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
-    function isAdmin() {
-      return isAuthenticated() && (
-        request.auth.uid == 'wjIawF3CYhcii3q1pzTAp5PdUxG3' ||
-        request.auth.token.email == 'kirito231411@gmail.com' ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        request.auth.token.email.matches('.*admin.*')
-      );
-    }
-
-    function isSuperAdmin() {
-      return isAuthenticated() && (
-        request.auth.uid == 'wjIawF3CYhcii3q1pzTAp5PdUxG3' ||
-        request.auth.token.email == 'kirito231411@gmail.com' ||
-        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'super_admin'
-      );
-    }
-
-    // 1. Admins Collection
-    match /admins/{adminId} {
-      allow read: if isAuthenticated();
-      allow write: if isSuperAdmin();
-    }
-
-    // 2. Users Collection
-    match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update, delete: if isOwner(userId) || isAdmin();
-    }
-
-    // 3. Official Groups & Channels (Auto-Join)
-    match /official_chats/{chatId} {
-      allow read: if isAuthenticated();
-      allow create, update, delete: if isAdmin();
-
-      match /members/{memberId} {
-        allow read: if isAuthenticated();
-        allow write: if isOwner(memberId) || isAdmin();
-      }
-    }
-
-    // 4. Personal Official Messages
-    match /official_messages/{messageId} {
-      allow read: if isAuthenticated() && (
-        resource.data.targetUserId == request.auth.uid || isAdmin()
-      );
-      allow create, update, delete: if isAdmin();
-    }
-
-    // 5. Force Broadcast Messages
-    match /force_broadcasts/{broadcastId} {
-      allow read: if isAuthenticated();
-      allow create, update, delete: if isAdmin();
-    }
-
-    // 6. Regular Chats & Messages
-    match /chats/{chatId} {
-      allow read, write: if isAuthenticated();
-
-      match /messages/{messageId} {
-        allow read, write: if isAuthenticated();
-      }
+    // Global catch-all rule: Allow full read and write access to all collections and documents
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }

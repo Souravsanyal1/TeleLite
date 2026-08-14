@@ -25,18 +25,22 @@ class TelegramBotService {
   Future<bool> sendBotMessage({
     required String chatId,
     required String text,
-    String parseMode = 'Markdown',
+    String? parseMode,
   }) async {
     final url = Uri.parse('$_baseUrl/sendMessage');
     try {
+      final bodyMap = <String, dynamic>{
+        'chat_id': chatId,
+        'text': text,
+      };
+      if (parseMode != null) {
+        bodyMap['parse_mode'] = parseMode;
+      }
+
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'chat_id': chatId,
-          'text': text,
-          'parse_mode': parseMode,
-        }),
+        body: jsonEncode(bodyMap),
       );
 
       if (response.statusCode == 200) {
@@ -45,6 +49,10 @@ class TelegramBotService {
       } else {
         debugPrint(
             'Telegram Bot Error [${response.statusCode}]: ${response.body}');
+        if (parseMode != null) {
+          // Retry without parse_mode
+          return sendBotMessage(chatId: chatId, text: text, parseMode: null);
+        }
         return false;
       }
     } catch (e) {
