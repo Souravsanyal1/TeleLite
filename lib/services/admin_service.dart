@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/admin_model.dart';
@@ -8,6 +9,8 @@ class AdminService extends GetxController {
   static AdminService get to => Get.isRegistered<AdminService>()
       ? Get.find<AdminService>()
       : Get.put(AdminService(), permanent: true);
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final Rx<AdminStats> stats = AdminStats().obs;
   final RxList<AdminUser> users = <AdminUser>[].obs;
@@ -216,9 +219,64 @@ class AdminService extends GetxController {
 
     logs.insert(0, log);
 
+    try {
+      await _firestore.collection('force_broadcasts').add({
+        'title': title,
+        'body': body,
+        'channel': channel,
+        'priority': priority,
+        'targetCount': count,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('Firestore force_broadcasts save exception: $e');
+    }
+
     NotificationService.showInAppNotification(
       title: 'Broadcast Sent ($channel)',
       body: 'Delivered to $count target user(s).',
     );
+  }
+
+  Future<void> saveOfficialChatToFirestore({
+    required String chatId,
+    required String name,
+    required String description,
+    required bool isChannel,
+    required bool isAutoJoin,
+    String? avatarUrl,
+  }) async {
+    try {
+      await _firestore.collection('official_chats').doc(chatId).set({
+        'id': chatId,
+        'name': name,
+        'description': description,
+        'isChannel': isChannel,
+        'isAutoJoin': isAutoJoin,
+        'avatarUrl': avatarUrl ?? '',
+        'isOfficial': true,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('Firestore official_chats save exception: $e');
+    }
+  }
+
+  Future<void> saveOfficialMessageToFirestore({
+    required String targetUserId,
+    required String text,
+    String? mediaUrl,
+  }) async {
+    try {
+      await _firestore.collection('official_messages').add({
+        'targetUserId': targetUserId,
+        'senderName': 'TeleLite Official',
+        'text': text,
+        'mediaUrl': mediaUrl,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('Firestore official_messages save exception: $e');
+    }
   }
 }

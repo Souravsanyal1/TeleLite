@@ -1,1 +1,6 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"telelite-48c4b","appId":"1:658104141431:android:58195493d7a7303c166872","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"telelite-48c4b","configurations":{"android":"1:658104141431:android:58195493d7a7303c166872","ios":"1:658104141431:ios:1a2a4bfae143572c166872","web":"1:658104141431:web:d899b54bc1405c88166872","windows":"1:658104141431:web:6e6b421c317e4245166872"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}
