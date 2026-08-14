@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/models.dart';
@@ -131,6 +132,34 @@ class TelegramController extends GetxController {
     }, onError: (e) {
       debugPrint('Firestore force_broadcasts listener error: $e');
       _initialLoadDone = true;
+    });
+
+    // 4. Real-time User Premium & Expiry listener
+    FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user != null) {
+        _firestore.collection('users').doc(user.uid).snapshots().listen((doc) {
+          if (doc.exists && doc.data() != null) {
+            final data = doc.data()!;
+            final hasPremium = data['isPremium'] == true;
+            final expiryStr = data['premiumExpiry']?.toString();
+            if (hasPremium) {
+              if (expiryStr != null && expiryStr.isNotEmpty) {
+                final expiry = DateTime.tryParse(expiryStr);
+                if (expiry != null && DateTime.now().isAfter(expiry)) {
+                  // Expired! Lock back to free
+                  isPremium.value = false;
+                  return;
+                }
+              }
+              isPremium.value = true;
+            } else {
+              isPremium.value = false;
+            }
+          }
+        }, onError: (e) {
+          debugPrint('Firestore user premium listener error: $e');
+        });
+      }
     });
   }
 

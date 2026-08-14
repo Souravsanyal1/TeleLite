@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import '../controllers/telegram_controller.dart';
 import '../theme/app_theme.dart';
 import '../services/story_service.dart';
 
@@ -308,16 +309,114 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                                   border: Border.all(color: Colors.white70, width: 1.5),
                                   shape: BoxShape.circle,
                                 ),
-                                child: Text('$_selectedDuration', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                child: Text('$_selectedDuration',
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold)),
                               ),
                               color: const Color(0xFF2C2C2C),
-                              onSelected: (value) => setState(() => _selectedDuration = value),
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(value: 6, child: Text('6 hours', style: TextStyle(color: Colors.white))),
-                                const PopupMenuItem(value: 12, child: Text('12 hours', style: TextStyle(color: Colors.white))),
-                                const PopupMenuItem(value: 24, child: Text('24 hours', style: TextStyle(color: Colors.white))),
-                                const PopupMenuItem(value: 48, child: Text('48 hours', style: TextStyle(color: Colors.white))),
-                              ],
+                              onSelected: (value) {
+                                final isPremium =
+                                    TelegramController.to.isPremium.value;
+                                if (!isPremium && value != 24) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Row(
+                                        children: [
+                                          const Icon(Icons.star,
+                                              color: Colors.amber, size: 20),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                                '🔒 $value Hours is a Premium Feature. Free users can post for 24 Hours.'),
+                                          ),
+                                        ],
+                                      ),
+                                      backgroundColor: const Color(0xFF1E2732),
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: const Duration(seconds: 3),
+                                    ),
+                                  );
+                                  setState(() => _selectedDuration = 24);
+                                } else {
+                                  setState(() => _selectedDuration = value);
+                                }
+                              },
+                              itemBuilder: (context) {
+                                final isPremium =
+                                    TelegramController.to.isPremium.value;
+                                return [
+                                  PopupMenuItem(
+                                    value: 6,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('6 hours',
+                                            style: TextStyle(
+                                                color: isPremium
+                                                    ? Colors.white
+                                                    : Colors.white60)),
+                                        if (!isPremium)
+                                          const Icon(Icons.lock_rounded,
+                                              color: Colors.amber, size: 16),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 12,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('12 hours',
+                                            style: TextStyle(
+                                                color: isPremium
+                                                    ? Colors.white
+                                                    : Colors.white60)),
+                                        if (!isPremium)
+                                          const Icon(Icons.lock_rounded,
+                                              color: Colors.amber, size: 16),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 24,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('24 hours',
+                                            style:
+                                                TextStyle(color: Colors.white)),
+                                        Text('FREE',
+                                            style: TextStyle(
+                                                color: Colors.green,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 48,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('48 hours',
+                                            style: TextStyle(
+                                                color: isPremium
+                                                    ? Colors.white
+                                                    : Colors.white60)),
+                                        if (!isPremium)
+                                          const Icon(Icons.lock_rounded,
+                                              color: Colors.amber, size: 16),
+                                      ],
+                                    ),
+                                  ),
+                                ];
+                              },
                             ),
                           ],
                         ),

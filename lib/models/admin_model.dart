@@ -50,6 +50,8 @@ class AdminUser {
   final bool isBlocked;
   final bool isOnline;
   final String? telegramChatId;
+  final bool isPremium;
+  final DateTime? premiumExpiry;
 
   AdminUser({
     required this.id,
@@ -62,6 +64,8 @@ class AdminUser {
     this.isBlocked = false,
     this.isOnline = true,
     this.telegramChatId,
+    this.isPremium = false,
+    this.premiumExpiry,
   });
 
   AdminUser copyWith({
@@ -75,6 +79,8 @@ class AdminUser {
     bool? isBlocked,
     bool? isOnline,
     String? telegramChatId,
+    bool? isPremium,
+    DateTime? premiumExpiry,
   }) {
     return AdminUser(
       id: id ?? this.id,
@@ -87,7 +93,25 @@ class AdminUser {
       isBlocked: isBlocked ?? this.isBlocked,
       isOnline: isOnline ?? this.isOnline,
       telegramChatId: telegramChatId ?? this.telegramChatId,
+      isPremium: isPremium ?? this.isPremium,
+      premiumExpiry: premiumExpiry ?? this.premiumExpiry,
     );
+  }
+
+  /// Check if premium is still active (not expired)
+  bool get isPremiumActive {
+    if (!isPremium) return false;
+    if (premiumExpiry == null) return isPremium; // lifetime
+    return DateTime.now().isBefore(premiumExpiry!);
+  }
+
+  /// Remaining premium time as human-readable string
+  String get premiumRemainingText {
+    if (!isPremiumActive) return 'Expired';
+    if (premiumExpiry == null) return 'Lifetime';
+    final diff = premiumExpiry!.difference(DateTime.now());
+    if (diff.inHours >= 1) return '${diff.inHours}h ${diff.inMinutes % 60}m left';
+    return '${diff.inMinutes}m left';
   }
 }
 

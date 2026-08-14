@@ -232,6 +232,290 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 28),
+
+            // ==================== FEATURE: USER LIST & PREMIUM ACCESS CONTROL ====================
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2330) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(isDark ? 50 : 15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.workspace_premium_rounded,
+                              color: Colors.amber, size: 24),
+                          SizedBox(width: 10),
+                          Text(
+                            'User Premium Management (ইউজার প্রিমিয়াম কন্ট্রোল)',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withAlpha(30),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.amber),
+                        ),
+                        child: Text(
+                          '${usersList.where((u) => u.isPremiumActive).length} Premium Active',
+                          style: const TextStyle(
+                              color: Colors.amber,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Grant or revoke Premium subscription per user with automatic time lock (6h, 12h, 24h, 48h, 7d, 30d, Lifetime)',
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
+                  const SizedBox(height: 16),
+
+                  if (usersList.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: Center(
+                        child: Text('No registered users found.',
+                            style: TextStyle(color: Colors.grey)),
+                      ),
+                    )
+                  else
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: usersList.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final u = usersList[index];
+                        final isPrem = u.isPremiumActive;
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundColor: isPrem
+                                    ? Colors.amber
+                                    : TeleTheme.primary,
+                                backgroundImage:
+                                    u.avatarUrl.startsWith('http')
+                                        ? NetworkImage(u.avatarUrl)
+                                        : null,
+                                child: u.avatarUrl.isEmpty
+                                    ? Text(
+                                        u.name.isNotEmpty
+                                            ? u.name[0].toUpperCase()
+                                            : 'U',
+                                        style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold),
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          u.name,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        if (isPrem)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: Colors.amber.withAlpha(40),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              border: Border.all(
+                                                  color: Colors.amber),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                    Icons.star_rounded,
+                                                    color: Colors.amber,
+                                                    size: 12),
+                                                const SizedBox(width: 2),
+                                                Text(
+                                                  'PREMIUM (${u.premiumRemainingText})',
+                                                  style: const TextStyle(
+                                                      color: Colors.amber,
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                          )
+                                        else
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.withAlpha(30),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: const Text(
+                                              'FREE PLAN',
+                                              style: TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w600),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${u.phone} • @${u.username}',
+                                      style: const TextStyle(
+                                          color: Colors.grey, fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Action Controls
+                              PopupMenuButton<int?>(
+                                tooltip: 'Set Premium Duration',
+                                icon: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: isPrem
+                                        ? Colors.green.withAlpha(30)
+                                        : TeleTheme.primary.withAlpha(30),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: isPrem
+                                          ? Colors.green
+                                          : TeleTheme.primary,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        isPrem
+                                            ? Icons.check_circle_rounded
+                                            : Icons.add_moderator_rounded,
+                                        size: 14,
+                                        color: isPrem
+                                            ? Colors.green
+                                            : TeleTheme.primary,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        isPrem ? 'Extend' : 'Grant Premium',
+                                        style: TextStyle(
+                                          color: isPrem
+                                              ? Colors.green
+                                              : TeleTheme.primary,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                onSelected: (hours) {
+                                  service.grantPremiumAccess(u.id,
+                                      durationHours: hours);
+                                  Get.snackbar(
+                                    'Premium Granted! ⭐',
+                                    hours != null
+                                        ? '${u.name} granted Premium for $hours Hours.'
+                                        : '${u.name} granted Lifetime Premium.',
+                                    backgroundColor: Colors.amber[800],
+                                    colorText: Colors.white,
+                                  );
+                                },
+                                itemBuilder: (context) => [
+                                  const PopupMenuItem(
+                                    value: 6,
+                                    child: Text('⏱️ 6 Hours Premium'),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 12,
+                                    child: Text('⏱️ 12 Hours Premium'),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 24,
+                                    child: Text('⏱️ 24 Hours (1 Day) Premium'),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 48,
+                                    child: Text('⏱️ 48 Hours (2 Days) Premium'),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 168,
+                                    child: Text('📅 7 Days (1 Week) Premium'),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 720,
+                                    child: Text('📅 30 Days (1 Month) Premium'),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: null,
+                                    child: Text('♾️ Lifetime (Permanent) Premium'),
+                                  ),
+                                ],
+                              ),
+                              if (isPrem) ...[
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  tooltip: 'Revoke Premium Access',
+                                  icon: const Icon(Icons.lock_rounded,
+                                      color: Colors.red, size: 18),
+                                  onPressed: () {
+                                    service.revokePremiumAccess(u.id);
+                                    Get.snackbar(
+                                      'Premium Revoked 🔒',
+                                      '${u.name} is now locked to Free plan.',
+                                      backgroundColor: Colors.red[800],
+                                      colorText: Colors.white,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              ),
+            ),
             const SizedBox(height: 32),
 
             // ==================== FEATURE 2 & 3: PERSONAL MESSAGE & OFFICIAL GROUP CREATION ====================

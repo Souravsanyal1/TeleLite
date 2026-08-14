@@ -85,6 +85,10 @@ class AdminService extends GetxController {
               storiesCount: 0,
               isBlocked: data['isBlocked'] == true,
               isOnline: data['isOnline'] == true,
+              isPremium: data['isPremium'] == true,
+              premiumExpiry: data['premiumExpiry'] != null
+                  ? DateTime.tryParse(data['premiumExpiry'].toString())
+                  : null,
             ),
           );
         }
@@ -415,6 +419,54 @@ class AdminService extends GetxController {
           .set(profile.toMap(), SetOptions(merge: true));
     } catch (e) {
       debugPrint('Firestore adminProfile save exception: $e');
+    }
+  }
+
+  Future<void> grantPremiumAccess(String userId, {int? durationHours}) async {
+    try {
+      final now = DateTime.now();
+      DateTime? expiry;
+      if (durationHours != null && durationHours > 0) {
+        expiry = now.add(Duration(hours: durationHours));
+      }
+
+      await _firestore.collection('users').doc(userId).set({
+        'isPremium': true,
+        'premiumSubscribedAt': now.toIso8601String(),
+        'premiumExpiry': expiry?.toIso8601String(),
+        'premiumDurationHours': durationHours,
+      }, SetOptions(merge: true));
+
+      // Also create an official congratulatory notification for the user
+      await _firestore.collection('official_messages').add({
+        'targetUserId': userId,
+        'senderName': 'TeleLite Official',
+        'text': durationHours != null
+            ? '⭐ Congratulations! You have been granted TeleLite Premium for $durationHours hours by Administrator.'
+            : '⭐ Congratulations! You have been granted Lifetime TeleLite Premium by Administrator.',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('Firestore grantPremiumAccess error: $e');
+    }
+  }
+
+  Future<void> revokePremiumAccess(String userId) async {
+    try {
+      await _firestore.collection('users').doc(userId).set({
+        'isPremium': false,
+        'premiumExpiry': null,
+        'premiumDurationHours': null,
+      }, SetOptions(merge: true));
+
+      await _firestore.collection('official_messages').add({
+        'targetUserId': userId,
+        'senderName': 'TeleLite Official',
+        'text': 'ℹ️ Your TeleLite Premium subscription has expired or been revoked. You are now on the standard free plan.',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('Firestore revokePremiumAccess error: $e');
     }
   }
 }
