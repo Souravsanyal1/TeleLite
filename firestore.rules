@@ -13,6 +13,8 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && (
+        request.auth.uid == 'wjIawF3CYhcii3q1pzTAp5PdUxG3' ||
+        request.auth.token.email == 'kirito231411@gmail.com' ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
         request.auth.token.email.matches('.*admin.*')
       );
@@ -20,6 +22,8 @@ service cloud.firestore {
 
     function isSuperAdmin() {
       return isAuthenticated() && (
+        request.auth.uid == 'wjIawF3CYhcii3q1pzTAp5PdUxG3' ||
+        request.auth.token.email == 'kirito231411@gmail.com' ||
         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'super_admin'
       );
     }

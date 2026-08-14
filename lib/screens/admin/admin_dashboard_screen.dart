@@ -38,7 +38,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     super.dispose();
   }
 
-  void _handleSendPersonalOfficialMessage() {
+  void _handleSendPersonalOfficialMessage() async {
     final text = _personalMessageController.text.trim();
     final photoUrl = _personalPhotoController.text.trim();
 
@@ -54,18 +54,31 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       mediaUrl: photoUrl.isNotEmpty ? photoUrl : null,
     );
 
+    // Save REAL document to Firestore official_messages
+    await AdminService.to.saveOfficialMessageToFirestore(
+      targetUserId: _selectedUserId,
+      text: text,
+      mediaUrl: photoUrl.isNotEmpty ? photoUrl : null,
+    );
+
+    // Trigger REAL Telegram Bot Notice
+    await AdminService.to.sendTelegramBotNotice(
+      _selectedUserId,
+      text,
+    );
+
     _personalMessageController.clear();
     _personalPhotoController.clear();
 
     Get.snackbar(
-      'Official Message Sent',
-      'Personal official message dispatched from TeleLite Official.',
+      'Official Message Sent (Live)',
+      'Personal official message dispatched and saved to Firestore.',
       backgroundColor: Colors.green,
       colorText: Colors.white,
     );
   }
 
-  void _handleCreateOfficialGroupOrChannel() {
+  void _handleCreateOfficialGroupOrChannel() async {
     final name = _officialNameController.text.trim();
     final desc = _officialDescController.text.trim();
     final photoUrl = _officialPhotoController.text.trim();
@@ -77,6 +90,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     }
 
     final newChat = TelegramController.to.createOfficialGroupOrChannel(
+      name: name,
+      description: desc,
+      isChannel: _isChannel,
+      isAutoJoin: _isAutoJoin,
+      avatarUrl: photoUrl,
+    );
+
+    // Save REAL document to Firestore official_chats
+    await AdminService.to.saveOfficialChatToFirestore(
+      chatId: newChat.id,
       name: name,
       description: desc,
       isChannel: _isChannel,

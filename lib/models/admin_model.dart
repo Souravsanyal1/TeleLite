@@ -6,6 +6,8 @@ class AdminStats {
   final int usersToday;
   final int messagesToday;
 
+  final int activeChannels;
+
   AdminStats({
     this.totalUsers = 1234,
     this.totalMessages = 5678,
@@ -13,7 +15,28 @@ class AdminStats {
     this.activeBlocks = 23,
     this.usersToday = 23,
     this.messagesToday = 45,
+    this.activeChannels = 0,
   });
+
+  AdminStats copyWith({
+    int? totalUsers,
+    int? totalMessages,
+    int? pendingReports,
+    int? activeBlocks,
+    int? usersToday,
+    int? messagesToday,
+    int? activeChannels,
+  }) {
+    return AdminStats(
+      totalUsers: totalUsers ?? this.totalUsers,
+      totalMessages: totalMessages ?? this.totalMessages,
+      pendingReports: pendingReports ?? this.pendingReports,
+      activeBlocks: activeBlocks ?? this.activeBlocks,
+      usersToday: usersToday ?? this.usersToday,
+      messagesToday: messagesToday ?? this.messagesToday,
+      activeChannels: activeChannels ?? this.activeChannels,
+    );
+  }
 }
 
 class AdminUser {
