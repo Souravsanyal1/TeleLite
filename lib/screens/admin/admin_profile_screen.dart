@@ -1,4 +1,6 @@
-import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -22,6 +24,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   late TextEditingController _chatIdController;
 
   XFile? _pickedAvatarImage;
+  Uint8List? _pickedAvatarBytes;
   bool _isSaving = false;
 
   AdminService get _adminService => AdminService.to;
@@ -51,13 +54,36 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     super.dispose();
   }
 
+  ImageProvider? _getAvatarImage(String avatarUrl) {
+    // Picked image bytes take highest priority
+    if (_pickedAvatarBytes != null) {
+      return MemoryImage(_pickedAvatarBytes!);
+    }
+    // On web, picked XFile path is a blob URL
+    if (_pickedAvatarImage != null && kIsWeb) {
+      return NetworkImage(_pickedAvatarImage!.path);
+    }
+    // Base64 data URL saved in Firestore
+    if (avatarUrl.startsWith('data:image')) {
+      final dataStr = avatarUrl.split(',').last;
+      return MemoryImage(base64Decode(dataStr));
+    }
+    // Firestore saved HTTP URL
+    if (avatarUrl.startsWith('http') || avatarUrl.startsWith('blob:')) {
+      return NetworkImage(avatarUrl);
+    }
+    return null;
+  }
+
   Future<void> _pickAvatarFromDevice() async {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      final bytes = await image.readAsBytes();
       setState(() {
         _pickedAvatarImage = image;
-        _avatarUrlController.text = image.path;
+        _pickedAvatarBytes = bytes;
+        _avatarUrlController.text = image.name;
       });
     }
   }
@@ -67,11 +93,17 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     final title = _titleController.text.trim();
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
-    final avatarUrl = _pickedAvatarImage != null
-        ? _pickedAvatarImage!.path
-        : _avatarUrlController.text.trim();
     final botToken = _botTokenController.text.trim();
     final chatId = _chatIdController.text.trim();
+
+    // Convert picked image bytes to base64 data URL for Firestore persistence
+    String avatarUrl;
+    if (_pickedAvatarBytes != null) {
+      final base64Str = base64Encode(_pickedAvatarBytes!);
+      avatarUrl = 'data:image/jpeg;base64,$base64Str';
+    } else {
+      avatarUrl = _adminService.adminProfile.value.avatarUrl;
+    }
 
     if (name.isEmpty || email.isEmpty) {
       Get.snackbar('Required Fields', 'Please enter Admin Name and Email.',
@@ -166,14 +198,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                           CircleAvatar(
                             radius: 40,
                             backgroundColor: TeleTheme.primary,
-                            backgroundImage: _pickedAvatarImage != null
-                                ? FileImage(File(_pickedAvatarImage!.path))
-                                    as ImageProvider
-                                : (profile.avatarUrl.startsWith('http')
-                                    ? NetworkImage(profile.avatarUrl)
-                                    : (File(profile.avatarUrl).existsSync()
-                                        ? FileImage(File(profile.avatarUrl))
-                                        : null) as ImageProvider?),
+                            backgroundImage: _getAvatarImage(profile.avatarUrl),
                             child: (profile.avatarUrl.isEmpty &&
                                     _pickedAvatarImage == null)
                                 ? Text(

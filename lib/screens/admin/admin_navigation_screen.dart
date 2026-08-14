@@ -1,4 +1,5 @@
-import 'dart:io';
+
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/telegram_controller.dart';
@@ -73,11 +74,11 @@ class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
               child: CircleAvatar(
                 radius: 16,
                 backgroundColor: TeleTheme.primary,
-                backgroundImage: profile.avatarUrl.startsWith('http')
-                    ? NetworkImage(profile.avatarUrl)
-                    : (File(profile.avatarUrl).existsSync()
-                        ? FileImage(File(profile.avatarUrl))
-                        : null) as ImageProvider?,
+                backgroundImage: profile.avatarUrl.startsWith('data:image')
+                    ? MemoryImage(base64Decode(profile.avatarUrl.split(',').last)) as ImageProvider
+                    : (profile.avatarUrl.startsWith('http') || profile.avatarUrl.startsWith('blob:'))
+                        ? NetworkImage(profile.avatarUrl)
+                        : null,
                 child: profile.avatarUrl.isEmpty
                     ? Text(profile.name.isNotEmpty ? profile.name[0] : 'A',
                         style:
@@ -144,11 +145,11 @@ class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: TeleTheme.primary,
-                  backgroundImage: profile.avatarUrl.startsWith('http')
-                      ? NetworkImage(profile.avatarUrl)
-                      : (File(profile.avatarUrl).existsSync()
-                          ? FileImage(File(profile.avatarUrl))
-                          : null) as ImageProvider?,
+                  backgroundImage: profile.avatarUrl.startsWith('data:image')
+                      ? MemoryImage(base64Decode(profile.avatarUrl.split(',').last)) as ImageProvider
+                      : (profile.avatarUrl.startsWith('http') || profile.avatarUrl.startsWith('blob:'))
+                          ? NetworkImage(profile.avatarUrl)
+                          : null,
                   child: profile.avatarUrl.isEmpty
                       ? Text(
                           profile.name.isNotEmpty ? profile.name[0] : 'A',
