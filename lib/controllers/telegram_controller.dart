@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/models.dart';
+import '../services/notification_service.dart';
 
 class TelegramController extends GetxController {
   static TelegramController get to => Get.isRegistered<TelegramController>()
@@ -230,6 +231,48 @@ class TelegramController extends GetxController {
         ),
       );
     }
+  }
+
+  void receiveIncomingMessage(String chatId, String senderName, String text, {String? avatarUrl}) {
+    final nowTime =
+        '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}';
+
+    final incomingMsg = Message(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      chatId: chatId,
+      senderName: senderName,
+      text: text.trim(),
+      time: nowTime,
+      isSentByMe: false,
+      isRead: false,
+    );
+
+    if (chatMessages.containsKey(chatId)) {
+      chatMessages[chatId]!.add(incomingMsg);
+      chatMessages.refresh();
+    } else {
+      chatMessages[chatId] = [incomingMsg];
+    }
+
+    final index = chats.indexWhere((c) => c.id == chatId);
+    if (index != -1) {
+      final old = chats.removeAt(index);
+      chats.insert(
+        0,
+        old.copyWith(
+          lastMessage: text.trim(),
+          time: nowTime,
+          unreadCount: old.unreadCount + 1,
+        ),
+      );
+    }
+
+    // Trigger In-App Top Banner + Out-of-App System Tray Notification
+    NotificationService().notify(
+      title: senderName,
+      body: text,
+      avatarUrl: avatarUrl,
+    );
   }
 
   void clearChatMessages(String chatId) {

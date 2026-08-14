@@ -13,6 +13,7 @@ import 'package:telegram_lite/services/mock_data.dart';
 import 'package:telegram_lite/theme/app_theme.dart';
 
 import 'package:flutter/foundation.dart';
+import 'package:telegram_lite/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,9 +28,15 @@ void main() async {
     return true;
   };
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase initialization warning: $e');
+  }
+
+  await NotificationService().initialize();
   Get.put(TelegramController(), permanent: true);
   runApp(const TelegramLiteApp());
 }
@@ -58,6 +65,10 @@ class _TelegramLiteAppState extends State<TelegramLiteApp> {
         home: StreamBuilder<User?>(
           stream: _authService.authStateChanges,
           builder: (context, authSnapshot) {
+            if (authSnapshot.hasError) {
+              return PhoneInputScreen(authService: _authService);
+            }
+
             final user = authSnapshot.data;
             if (user == null) {
               return PhoneInputScreen(authService: _authService);
@@ -67,16 +78,6 @@ class _TelegramLiteAppState extends State<TelegramLiteApp> {
             return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>?>(
               stream: _authService.userProfileStream,
               builder: (context, profileSnapshot) {
-                if (profileSnapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return const Scaffold(
-                    body: Center(
-                      child:
-                          CircularProgressIndicator(color: TeleTheme.primary),
-                    ),
-                  );
-                }
-
                 if (profileSnapshot.hasError) {
                   debugPrint(
                       'Firestore profileSnapshot error: ${profileSnapshot.error}');
