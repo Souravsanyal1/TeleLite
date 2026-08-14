@@ -787,13 +787,12 @@ class _AddMembersScreenState extends State<_AddMembersScreen> {
         .where((c) => _selectedIds.contains(c.id))
         .toList();
     widget.dataService.addMembersToGroup(widget.chat.id, toAdd);
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Added ${toAdd.length} member(s)!'),
-        backgroundColor: TeleTheme.primary,
-        behavior: SnackBarBehavior.floating,
-      ),
+    Get.back();
+    Get.snackbar(
+      'Success',
+      'Added ${toAdd.length} member(s)!',
+      backgroundColor: Colors.green.withAlpha(200),
+      colorText: Colors.white,
     );
   }
 
@@ -814,11 +813,25 @@ class _AddMembersScreenState extends State<_AddMembersScreen> {
               child: Text(
                 'Add (${_selectedIds.length})',
                 style: const TextStyle(
-                    color: TeleTheme.primary, fontWeight: FontWeight.bold),
+                    color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
               ),
             ),
         ],
       ),
+      floatingActionButton: _selectedIds.isNotEmpty
+          ? FloatingActionButton.extended(
+              onPressed: _addSelected,
+              backgroundColor: TeleTheme.primary,
+              icon: const Icon(Icons.check, color: Colors.white),
+              label: Text(
+                'Add (${_selectedIds.length})',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+          : null,
       body: Column(
         children: [
           Padding(

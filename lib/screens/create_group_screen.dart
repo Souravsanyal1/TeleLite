@@ -108,7 +108,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen>
               onPressed: () => setState(() => _step = 1),
               child: const Text('Next',
                   style: TextStyle(
-                      color: TeleTheme.primary, fontWeight: FontWeight.bold)),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16)),
             ),
           if (effectiveStep == 1)
             _isCreating
@@ -117,17 +119,33 @@ class _CreateGroupScreenState extends State<CreateGroupScreen>
                     child: SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2)),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white)),
                   )
                 : TextButton(
                     onPressed: _create,
                     child: const Text('Create',
                         style: TextStyle(
-                            color: TeleTheme.primary,
-                            fontWeight: FontWeight.bold)),
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16)),
                   ),
         ],
       ),
+      floatingActionButton: (effectiveStep == 0 && _selectedContactIds.isNotEmpty)
+          ? FloatingActionButton.extended(
+              onPressed: () => setState(() => _step = 1),
+              backgroundColor: TeleTheme.primary,
+              icon: const Icon(Icons.arrow_forward, color: Colors.white),
+              label: Text(
+                'Next (${_selectedContactIds.length})',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+          : null,
       body: effectiveStep == 0
           ? _buildSelectMembers(isDark)
           : _buildGroupInfo(isDark),
