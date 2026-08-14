@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../controllers/telegram_controller.dart';
 import '../../services/admin_service.dart';
 import '../../theme/app_theme.dart';
@@ -20,6 +21,19 @@ class _AdminNotificationControlScreenState
 
   String _selectedChannel = 'FCM Push'; // 'FCM Push', 'Telegram Bot'
   final String _selectedPriority = 'High';
+
+  XFile? _pickedBroadcastImage;
+
+  Future<void> _pickBroadcastDeviceImage() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _pickedBroadcastImage = image;
+        _photoUrlController.text = image.path;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -186,18 +200,41 @@ class _AdminNotificationControlScreenState
                   ),
                   const SizedBox(height: 16),
 
-                  // Photo Attachment URL Field
-                  TextField(
-                    controller: _photoUrlController,
-                    decoration: InputDecoration(
-                      labelText: 'Attach Photo Image URL (Optional)',
-                      hintText:
-                          'https://images.unsplash.com/photo-1522071820081...',
-                      prefixIcon:
-                          const Icon(Icons.add_photo_alternate_outlined),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
+                  // Device Image Picker for Broadcast Photo Attachment
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _pickBroadcastDeviceImage,
+                          icon: const Icon(Icons.add_photo_alternate_rounded, color: TeleTheme.primary),
+                          label: Text(
+                            _pickedBroadcastImage == null
+                                ? '📁 Select Broadcast Photo from Device'
+                                : '✅ Photo Selected (${_pickedBroadcastImage!.name})',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (_pickedBroadcastImage != null) ...[
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.cancel, color: Colors.red),
+                          tooltip: 'Remove Photo',
+                          onPressed: () {
+                            setState(() {
+                              _pickedBroadcastImage = null;
+                              _photoUrlController.clear();
+                            });
+                          },
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 24),
 

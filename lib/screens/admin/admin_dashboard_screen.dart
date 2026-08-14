@@ -1,5 +1,8 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../controllers/telegram_controller.dart';
 import '../../services/admin_service.dart';
 import '../../theme/app_theme.dart';
@@ -27,6 +30,31 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   bool _isChannel = false;
   bool _isAutoJoin = true;
   String _selectedUserId = 'u1';
+
+  XFile? _pickedPersonalImage;
+  XFile? _pickedOfficialImage;
+
+  Future<void> _pickPersonalDeviceImage() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _pickedPersonalImage = image;
+        _personalPhotoController.text = image.path;
+      });
+    }
+  }
+
+  Future<void> _pickOfficialDeviceImage() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _pickedOfficialImage = image;
+        _officialPhotoController.text = image.path;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -277,17 +305,67 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         ),
                         const SizedBox(height: 14),
 
-                        // Optional Photo URL
-                        TextField(
-                          controller: _personalPhotoController,
-                          decoration: InputDecoration(
-                            labelText: 'Photo Attachment URL (Optional)',
-                            hintText: 'https://images.unsplash.com/photo-...',
-                            prefixIcon: const Icon(Icons.image_outlined),
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                          ),
+                        // Device Image Picker for Photo Attachment
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _pickPersonalDeviceImage,
+                                icon: const Icon(Icons.add_photo_alternate_rounded, color: TeleTheme.primary),
+                                label: Text(
+                                  _pickedPersonalImage == null
+                                      ? '📁 Select Photo from Device'
+                                      : '✅ Photo Selected (${_pickedPersonalImage!.name})',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(48),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (_pickedPersonalImage != null) ...[
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.cancel, color: Colors.red),
+                                tooltip: 'Remove Photo',
+                                onPressed: () {
+                                  setState(() {
+                                    _pickedPersonalImage = null;
+                                    _personalPhotoController.clear();
+                                  });
+                                },
+                              ),
+                            ],
+                          ],
                         ),
+                        if (_pickedPersonalImage != null) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            height: 60,
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withAlpha(20),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: TeleTheme.primary.withAlpha(80)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.image, color: TeleTheme.primary),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Attached: ${_pickedPersonalImage!.name}',
+                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 18),
 
                         SizedBox(
@@ -372,16 +450,41 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         ),
                         const SizedBox(height: 14),
 
-                        // Photo URL
-                        TextField(
-                          controller: _officialPhotoController,
-                          decoration: InputDecoration(
-                            labelText: 'Avatar Photo URL (Optional)',
-                            hintText: 'https://images.unsplash.com/...',
-                            prefixIcon: const Icon(Icons.add_a_photo_outlined),
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                          ),
+                        // Avatar Photo Device Picker
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _pickOfficialDeviceImage,
+                                icon: const Icon(Icons.add_a_photo_rounded, color: Colors.amber),
+                                label: Text(
+                                  _pickedOfficialImage == null
+                                      ? '📷 Select Avatar Photo from Device'
+                                      : '✅ Avatar Selected (${_pickedOfficialImage!.name})',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(48),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (_pickedOfficialImage != null) ...[
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.cancel, color: Colors.red),
+                                tooltip: 'Remove Photo',
+                                onPressed: () {
+                                  setState(() {
+                                    _pickedOfficialImage = null;
+                                    _officialPhotoController.clear();
+                                  });
+                                },
+                              ),
+                            ],
+                          ],
                         ),
                         const SizedBox(height: 12),
 
