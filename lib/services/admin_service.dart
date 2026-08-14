@@ -14,6 +14,7 @@ class AdminService extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final Rx<AdminStats> stats = AdminStats().obs;
+  final Rx<AdminProfile> adminProfile = AdminProfile().obs;
   final RxList<AdminUser> users = <AdminUser>[].obs;
   final RxList<ReportItem> reports = <ReportItem>[].obs;
   final RxList<NotificationLog> logs = <NotificationLog>[].obs;
@@ -22,6 +23,7 @@ class AdminService extends GetxController {
   StreamSubscription? _usersSub;
   StreamSubscription? _officialChatsSub;
   StreamSubscription? _broadcastsSub;
+  StreamSubscription? _profileSub;
 
   @override
   void onInit() {
@@ -34,10 +36,23 @@ class AdminService extends GetxController {
     _usersSub?.cancel();
     _officialChatsSub?.cancel();
     _broadcastsSub?.cancel();
+    _profileSub?.cancel();
     super.onClose();
   }
 
   void _bindRealFirestoreListeners() {
+    // 0. Listen to REAL Admin Profile Settings from Firestore
+    _profileSub = _firestore
+        .collection('admin_settings')
+        .doc('profile')
+        .snapshots()
+        .listen((doc) {
+      if (doc.exists && doc.data() != null) {
+        adminProfile.value = AdminProfile.fromMap(doc.data()!);
+      }
+    }, onError: (e) {
+      debugPrint('Firestore admin_settings/profile error: $e');
+    });
     // 1. Listen to REAL registered users from Firestore (Deduplicate by Phone Number)
     _usersSub = _firestore.collection('users').snapshots().listen((snap) {
       if (snap.docs.isNotEmpty) {
@@ -388,6 +403,18 @@ class AdminService extends GetxController {
       });
     } catch (e) {
       debugPrint('Firestore official_messages save exception: $e');
+    }
+  }
+
+  Future<void> saveAdminProfileToFirestore(AdminProfile profile) async {
+    adminProfile.value = profile;
+    try {
+      await _firestore
+          .collection('admin_settings')
+          .doc('profile')
+          .set(profile.toMap(), SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore adminProfile save exception: $e');
     }
   }
 }

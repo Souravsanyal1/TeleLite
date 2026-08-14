@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/telegram_controller.dart';
+import '../../services/admin_service.dart';
 import '../../theme/app_theme.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_notification_control_screen.dart';
+import 'admin_profile_screen.dart';
 
 class AdminNavigationScreen extends StatefulWidget {
   const AdminNavigationScreen({super.key});
@@ -18,49 +21,73 @@ class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
   final List<Widget> _pages = const [
     AdminDashboardScreen(),
     AdminNotificationControlScreen(),
+    AdminProfileScreen(),
   ];
 
   final List<Map<String, dynamic>> _navItems = const [
     {'title': '1. User Count & Stats', 'icon': Icons.people_alt_rounded},
     {'title': '2. Force Broadcast (With Photo)', 'icon': Icons.campaign_rounded},
+    {'title': '3. Admin Profile Settings', 'icon': Icons.person_outline_rounded},
   ];
 
   @override
   Widget build(BuildContext context) {
     final controller = TelegramController.to;
+    final adminService = AdminService.to;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: TeleTheme.primary,
-                shape: BoxShape.circle,
+    return Obx(() {
+      final profile = adminService.adminProfile.value;
+
+      return Scaffold(
+        appBar: AppBar(
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: TeleTheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.admin_panel_settings,
+                    color: Colors.white, size: 20),
               ),
-              child: const Icon(Icons.admin_panel_settings,
-                  color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              const Text(
+                'TeleLite Admin Panel',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(
+                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
+              tooltip: 'Toggle Theme',
+              onPressed: () => controller.toggleTheme(),
             ),
-            const SizedBox(width: 10),
-            const Text(
-              'TeleLite Admin Panel',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () => setState(() => _selectedIndex = 2),
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: TeleTheme.primary,
+                backgroundImage: profile.avatarUrl.startsWith('http')
+                    ? NetworkImage(profile.avatarUrl)
+                    : (File(profile.avatarUrl).existsSync()
+                        ? FileImage(File(profile.avatarUrl))
+                        : null) as ImageProvider?,
+                child: profile.avatarUrl.isEmpty
+                    ? Text(profile.name.isNotEmpty ? profile.name[0] : 'A',
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 12))
+                    : null,
+              ),
             ),
+            const SizedBox(width: 16),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(
-                isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
-            tooltip: 'Toggle Theme',
-            onPressed: () => controller.toggleTheme(),
-          ),
-          const SizedBox(width: 12),
-        ],
-      ),
       drawer: isDesktop
           ? null
           : Drawer(
@@ -89,15 +116,83 @@ class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
           ),
         ],
       ),
-    );
+      );
+    });
   }
 
   Widget _buildSidebarContent(bool isDark) {
+    final profile = AdminService.to.adminProfile.value;
+
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
       children: [
+        // Admin Profile Sidebar Card
+        GestureDetector(
+          onTap: () {
+            setState(() => _selectedIndex = 2);
+            if (Navigator.canPop(context)) Navigator.pop(context);
+          },
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: TeleTheme.primary.withAlpha(isDark ? 30 : 15),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: TeleTheme.primary.withAlpha(60)),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: TeleTheme.primary,
+                  backgroundImage: profile.avatarUrl.startsWith('http')
+                      ? NetworkImage(profile.avatarUrl)
+                      : (File(profile.avatarUrl).existsSync()
+                          ? FileImage(File(profile.avatarUrl))
+                          : null) as ImageProvider?,
+                  child: profile.avatarUrl.isEmpty
+                      ? Text(
+                          profile.name.isNotEmpty ? profile.name[0] : 'A',
+                          style: const TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        profile.name,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        profile.title,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: TeleTheme.primary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right_rounded,
+                    size: 18, color: Colors.grey),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Text(
             'TELELITE ADMIN CONTROLS',
             style: TextStyle(

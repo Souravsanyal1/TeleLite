@@ -150,3 +150,79 @@ class NotificationLog {
     required this.targetCount,
   });
 }
+
+class AdminProfile {
+  final String name;
+  final String title;
+  final String email;
+  final String phone;
+  final String avatarUrl;
+  final String telegramBotToken;
+  final String telegramChatId;
+  final bool isSuperAdmin;
+
+  AdminProfile({
+    this.name = 'Super Admin (Kirito)',
+    this.title = 'Chief System Administrator',
+    this.email = 'kirito231411@gmail.com',
+    this.phone = '+880 1711 000000',
+    this.avatarUrl =
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    this.telegramBotToken =
+        '8553809069:AAHmbtMKsyLp0lT8oppp3kW5EVH4NsHvCeE',
+    this.telegramChatId = '8553809069',
+    this.isSuperAdmin = true,
+  });
+
+  AdminProfile copyWith({
+    String? name,
+    String? title,
+    String? email,
+    String? phone,
+    String? avatarUrl,
+    String? telegramBotToken,
+    String? telegramChatId,
+    bool? isSuperAdmin,
+  }) {
+    return AdminProfile(
+      name: name ?? this.name,
+      title: title ?? this.title,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      telegramBotToken: telegramBotToken ?? this.telegramBotToken,
+      telegramChatId: telegramChatId ?? this.telegramChatId,
+      isSuperAdmin: isSuperAdmin ?? this.isSuperAdmin,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'title': title,
+      'email': email,
+      'phone': phone,
+      'avatarUrl': avatarUrl,
+      'telegramBotToken': telegramBotToken,
+      'telegramChatId': telegramChatId,
+      'isSuperAdmin': isSuperAdmin,
+    };
+  }
+
+  factory AdminProfile.fromMap(Map<String, dynamic> map) {
+    return AdminProfile(
+      name: (map['name'] ?? 'Super Admin (Kirito)').toString(),
+      title: (map['title'] ?? 'Chief System Administrator').toString(),
+      email: (map['email'] ?? 'kirito231411@gmail.com').toString(),
+      phone: (map['phone'] ?? '+880 1711 000000').toString(),
+      avatarUrl: (map['avatarUrl'] ??
+              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150')
+          .toString(),
+      telegramBotToken: (map['telegramBotToken'] ??
+              '8553809069:AAHmbtMKsyLp0lT8oppp3kW5EVH4NsHvCeE')
+          .toString(),
+      telegramChatId: (map['telegramChatId'] ?? '8553809069').toString(),
+      isSuperAdmin: map['isSuperAdmin'] != false,
+    );
+  }
+}
