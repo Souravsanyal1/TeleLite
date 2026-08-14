@@ -38,25 +38,41 @@ class AdminService extends GetxController {
   }
 
   void _bindRealFirestoreListeners() {
-    // 1. Listen to REAL registered users from Firestore
+    // 1. Listen to REAL registered users from Firestore (Deduplicate by Phone Number)
     _usersSub = _firestore.collection('users').snapshots().listen((snap) {
       if (snap.docs.isNotEmpty) {
-        final realUsers = snap.docs.map((doc) {
+        final Set<String> seenPhones = {};
+        final realUsers = <AdminUser>[];
+
+        for (var doc in snap.docs) {
           final data = doc.data();
-          return AdminUser(
-            id: doc.id,
-            name: (data['displayName'] ?? data['name'] ?? 'User').toString(),
-            username: (data['username'] ?? 'user').toString(),
-            phone: (data['phoneNumber'] ?? '+880 1700 000000').toString(),
-            avatarUrl: (data['photoUrl'] ?? data['avatarUrl'] ??
-                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150')
-                .toString(),
-            joinedTime: 'Recently',
-            storiesCount: 0,
-            isBlocked: data['isBlocked'] == true,
-            isOnline: data['isOnline'] == true,
+          final rawPhone = (data['phoneNumber'] ?? data['phone'] ?? '').toString();
+          final cleanPhone = rawPhone.replaceAll(RegExp(r'\D'), '');
+
+          // Deduplicate: If phone number is present and already seen, count only once!
+          if (cleanPhone.isNotEmpty && seenPhones.contains(cleanPhone)) {
+            continue;
+          }
+          if (cleanPhone.isNotEmpty) {
+            seenPhones.add(cleanPhone);
+          }
+
+          realUsers.add(
+            AdminUser(
+              id: doc.id,
+              name: (data['displayName'] ?? data['name'] ?? 'User').toString(),
+              username: (data['username'] ?? 'user').toString(),
+              phone: rawPhone.isNotEmpty ? rawPhone : '+880 1700 000000',
+              avatarUrl: (data['photoUrl'] ?? data['avatarUrl'] ??
+                      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150')
+                  .toString(),
+              joinedTime: 'Recently',
+              storiesCount: 0,
+              isBlocked: data['isBlocked'] == true,
+              isOnline: data['isOnline'] == true,
+            ),
           );
-        }).toList();
+        }
 
         users.assignAll(realUsers);
         stats.value = stats.value.copyWith(
