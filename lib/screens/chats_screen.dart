@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../controllers/telegram_controller.dart';
 import '../models/models.dart';
 import '../services/mock_data.dart';
 import '../services/story_service.dart';
@@ -27,6 +29,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
   ChatCategory _selectedCategory = ChatCategory.all;
   String _searchQuery = '';
   final StoryService _storyService = StoryService();
+  TelegramController get _controller => TelegramController.to;
 
   Future<void> _pickMediaForStory() async {
     try {
@@ -36,21 +39,14 @@ class _ChatsScreenState extends State<ChatsScreen> {
         final pathLower = pickedFile.path.toLowerCase();
         final isVideo = pathLower.endsWith('.mp4') || pathLower.endsWith('.mov') || pathLower.endsWith('.avi');
         
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AddStoryScreen(
-              mediaFile: File(pickedFile.path),
-              isVideo: isVideo,
-            ),
-          ),
-        );
+        Get.to(() => AddStoryScreen(
+          mediaFile: File(pickedFile.path),
+          isVideo: isVideo,
+        ));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to pick media: $e')),
-        );
+        Get.snackbar('Error', 'Failed to pick media: $e');
       }
     }
   }
@@ -59,18 +55,18 @@ class _ChatsScreenState extends State<ChatsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Filter chats based on category and search query
-    final filteredChats = widget.dataService.chats.where((chat) {
-      final matchesSearch = chat.name
-              .toLowerCase()
-              .contains(_searchQuery.toLowerCase()) ||
-          chat.lastMessage.toLowerCase().contains(_searchQuery.toLowerCase());
+    return Obx(() {
+      final filteredChats = _controller.chats.where((chat) {
+        final matchesSearch = chat.name
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase()) ||
+            chat.lastMessage.toLowerCase().contains(_searchQuery.toLowerCase());
 
-      if (!matchesSearch) return false;
-      if (_selectedCategory == ChatCategory.all) return true;
-      if (_selectedCategory == ChatCategory.unread) return chat.unreadCount > 0;
-      return chat.category == _selectedCategory;
-    }).toList();
+        if (!matchesSearch) return false;
+        if (_selectedCategory == ChatCategory.all) return true;
+        if (_selectedCategory == ChatCategory.unread) return chat.unreadCount > 0;
+        return chat.category == _selectedCategory;
+      }).toList();
 
     final currentUser = FirebaseAuth.instance.currentUser;
     final allowedUserIds = <String>[
@@ -203,6 +199,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
         ],
       ),
     );
+    });
   }
 
   void _showNewChatMenu(BuildContext context) {
@@ -349,15 +346,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
   Widget _buildChatItem(BuildContext context, Chat chat, bool isDark) {
     return InkWell(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChatDetailScreen(
-              chat: chat,
-              dataService: widget.dataService,
-            ),
-          ),
-        );
+        Get.to(() => ChatDetailScreen(
+          chat: chat,
+          dataService: widget.dataService,
+        ));
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../controllers/telegram_controller.dart';
 import '../services/mock_data.dart';
 import '../theme/app_theme.dart';
 
@@ -10,7 +12,10 @@ class CallsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final calls = dataService.calls;
+    final controller = TelegramController.to;
+
+    return Obx(() {
+      final calls = controller.calls;
 
     return Scaffold(
       appBar: AppBar(
@@ -35,7 +40,9 @@ class CallsScreen extends StatelessWidget {
               call.name,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: call.isMissed ? Colors.red : (isDark ? Colors.white : Colors.black87),
+                color: call.isMissed
+                    ? Colors.red
+                    : (isDark ? Colors.white : Colors.black87),
               ),
             ),
             subtitle: Row(
@@ -66,5 +73,6 @@ class CallsScreen extends StatelessWidget {
         },
       ),
     );
+    });
   }
 }

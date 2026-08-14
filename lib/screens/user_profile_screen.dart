@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 import '../models/models.dart';
 import '../models/story_model.dart';
@@ -431,24 +432,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               onTap: () {
                                 if (widget.chat != null &&
                                     widget.dataService != null) {
-                                  Navigator.pop(context);
+                                  widget.dataService!.ensureChatExists(widget.chat!);
+                                  Get.back();
                                 } else if (widget.contact != null &&
                                     widget.dataService != null) {
-                                  final newChat =
-                                      widget.dataService!.createSecretChat(
-                                    name: widget.contact!.name,
-                                    avatarUrl: widget.contact!.avatarUrl,
-                                  );
-                                  Navigator.pop(context);
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => ChatDetailScreen(
-                                        chat: newChat,
-                                        dataService: widget.dataService!,
-                                      ),
-                                    ),
-                                  );
+                                  final chat = widget.dataService!
+                                      .getOrCreateChatForContact(widget.contact!);
+                                  Get.back();
+                                  Get.to(() => ChatDetailScreen(
+                                    chat: chat,
+                                    dataService: widget.dataService!,
+                                  ));
                                 }
                               },
                             ),

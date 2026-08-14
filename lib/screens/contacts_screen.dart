@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/models.dart';
 import '../services/auth_service.dart';
@@ -579,19 +580,11 @@ class _ContactsScreenState extends State<ContactsScreen> {
                       },
                       onTap: () {
                         // Start conversation with contact
-                        final chat = widget.dataService.createSecretChat(
-                          name: contact.name,
-                          avatarUrl: contact.avatarUrl,
-                        );
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ChatDetailScreen(
-                              chat: chat,
-                              dataService: widget.dataService,
-                            ),
-                          ),
-                        );
+                        final chat = widget.dataService.getOrCreateChatForContact(contact);
+                        Get.to(() => ChatDetailScreen(
+                          chat: chat,
+                          dataService: widget.dataService,
+                        ));
                       },
                     )),
             ],

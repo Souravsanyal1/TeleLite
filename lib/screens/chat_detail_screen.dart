@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:get/get.dart';
+import '../controllers/telegram_controller.dart';
 import '../models/models.dart';
 import '../services/cloudinary_service.dart';
 import '../services/mock_data.dart';
@@ -34,10 +36,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   bool _isSearching = false;
   String _searchQuery = '';
   bool _isUploadingAttachment = false;
+  TelegramController get _controller => TelegramController.to;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.dataService.ensureChatExists(widget.chat);
       widget.dataService.markChatAsRead(widget.chat.id);
     });
   }
@@ -53,7 +58,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   void _sendMessage({String? mediaUrl, String? textOverride}) {
     final text = textOverride ?? _textController.text;
     if (text.trim().isNotEmpty || (mediaUrl != null && mediaUrl.isNotEmpty)) {
-      widget.dataService.sendMessage(widget.chat.id, text, mediaUrl: mediaUrl);
+      widget.dataService.sendMessage(
+        widget.chat.id,
+        text,
+        mediaUrl: mediaUrl,
+        fallbackChat: widget.chat,
+      );
       if (textOverride == null) {
         _textController.clear();
       }
@@ -392,9 +402,30 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   void _showEmojiSheet() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     const emojis = [
-      '😃', '😊', '😂', '❤️', '👍', '🔥', '🎉', '🙏',
-      '🚀', '💡', '✨', '👏', '🥳', '😍', '💯', '⚡',
-      '📌', '😎', '🌟', '💙', '🙈', '🎁', '🏆', '🙌',
+      '😃',
+      '😊',
+      '😂',
+      '❤️',
+      '👍',
+      '🔥',
+      '🎉',
+      '🙏',
+      '🚀',
+      '💡',
+      '✨',
+      '👏',
+      '🥳',
+      '😍',
+      '💯',
+      '⚡',
+      '📌',
+      '😎',
+      '🌟',
+      '💙',
+      '🙈',
+      '🎁',
+      '🏆',
+      '🙌',
     ];
 
     showModalBottomSheet(
@@ -626,8 +657,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       case 'leave':
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text('Left ${widget.chat.name}')),
+                          SnackBar(content: Text('Left ${widget.chat.name}')),
                         );
                         break;
                     }
@@ -721,8 +751,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                               widget.chat.isChannel
                                   ? 'Leave Channel'
                                   : 'Leave Group',
-                              style:
-                                  const TextStyle(color: Colors.redAccent),
+                              style: const TextStyle(color: Colors.redAccent),
                             ),
                           ],
                         ),
@@ -732,7 +761,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               ],
             ],
           ),
-
           body: Container(
             color: isDark ? const Color(0xFF0F1418) : const Color(0xFFE6EBF0),
             child: Column(
@@ -741,8 +769,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       color: isDark ? Colors.black38 : Colors.black12,
                       borderRadius: BorderRadius.circular(12),
@@ -810,7 +838,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                 ? 'No messages matching "$_searchQuery"'
                                 : 'No messages yet. Say hi!',
                             style: TextStyle(
-                                color: isDark ? Colors.white38 : Colors.black38),
+                                color:
+                                    isDark ? Colors.white38 : Colors.black38),
                           ),
                         )
                       : ListView.builder(
