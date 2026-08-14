@@ -793,23 +793,52 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             if (msg.mediaUrl != null && msg.mediaUrl!.isNotEmpty)
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  msg.mediaUrl!,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    padding: const EdgeInsets.all(12),
-                    color: Colors.grey.withAlpha(40),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.insert_drive_file, color: Colors.grey),
-                        SizedBox(width: 8),
-                        Text('Media attachment'),
-                      ],
-                    ),
-                  ),
-                ),
+                child: (msg.mediaUrl!.startsWith('http') ||
+                        msg.mediaUrl!.startsWith('data:image'))
+                    ? Image.network(
+                        msg.mediaUrl!,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Image.file(
+                          File(msg.mediaUrl!),
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            padding: const EdgeInsets.all(12),
+                            color: Colors.grey.withAlpha(40),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.photo, color: Colors.grey),
+                                SizedBox(width: 8),
+                                Text('Photo Attachment'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                    : Image.file(
+                        File(msg.mediaUrl!),
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Image.network(
+                          msg.mediaUrl!,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            padding: const EdgeInsets.all(12),
+                            color: Colors.grey.withAlpha(40),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.photo, color: Colors.grey),
+                                SizedBox(width: 8),
+                                Text('Photo Attachment'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
               ),
 
             if (msg.text.isNotEmpty)

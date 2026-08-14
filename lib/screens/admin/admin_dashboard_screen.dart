@@ -68,10 +68,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   void _handleSendPersonalOfficialMessage() async {
     final text = _personalMessageController.text.trim();
-    final photoUrl = _personalPhotoController.text.trim();
+    final photoUrl = _pickedPersonalImage != null
+        ? _pickedPersonalImage!.path
+        : _personalPhotoController.text.trim();
 
-    if (text.isEmpty) {
-      Get.snackbar('Required', 'Please enter personal official message text.',
+    if (text.isEmpty && photoUrl.isEmpty) {
+      Get.snackbar('Required', 'Please enter message text or select a photo.',
           backgroundColor: Colors.amber[800], colorText: Colors.white);
       return;
     }
@@ -95,12 +97,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       text,
     );
 
+    setState(() {
+      _pickedPersonalImage = null;
+    });
     _personalMessageController.clear();
     _personalPhotoController.clear();
 
     Get.snackbar(
       'Official Message Sent (Live)',
-      'Personal official message dispatched and saved to Firestore.',
+      'Personal official message with photo dispatched and saved to Firestore.',
       backgroundColor: Colors.green,
       colorText: Colors.white,
     );

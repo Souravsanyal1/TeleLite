@@ -46,7 +46,9 @@ class _AdminNotificationControlScreenState
   void _dispatchForceBroadcast() {
     final title = _titleController.text.trim();
     final body = _bodyController.text.trim();
-    final photoUrl = _photoUrlController.text.trim();
+    final photoUrl = _pickedBroadcastImage != null
+        ? _pickedBroadcastImage!.path
+        : _photoUrlController.text.trim();
 
     if (title.isEmpty || body.isEmpty) {
       Get.snackbar(
@@ -71,8 +73,12 @@ class _AdminNotificationControlScreenState
       channel: _selectedChannel,
       priority: _selectedPriority,
       targetUserIds: [],
+      imageUrl: photoUrl.isNotEmpty ? photoUrl : null,
     );
 
+    setState(() {
+      _pickedBroadcastImage = null;
+    });
     _titleController.clear();
     _bodyController.clear();
     _photoUrlController.clear();
