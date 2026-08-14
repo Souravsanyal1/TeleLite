@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import 'otp_verification_screen.dart';
+import 'email_login_screen.dart';
 
 class PhoneInputScreen extends StatefulWidget {
   final AuthService authService;

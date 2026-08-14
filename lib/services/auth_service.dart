@@ -110,6 +110,44 @@ class AuthService extends ChangeNotifier {
     return userCredential;
   }
 
+  // Sign in with Email and Password (for Web App and Admin Panel Login)
+  Future<UserCredential?> signInWithEmailAndPassword(
+      String email, String password) async {
+    try {
+      final credential = await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
+      notifyListeners();
+      return credential;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+        try {
+          final newCredential = await _auth.createUserWithEmailAndPassword(
+            email: email.trim(),
+            password: password.trim(),
+          );
+          notifyListeners();
+          return newCredential;
+        } catch (_) {
+          rethrow;
+        }
+      }
+      rethrow;
+    }
+  }
+
+  // Sign up with Email and Password
+  Future<UserCredential> signUpWithEmailAndPassword(
+      String email, String password) async {
+    final credential = await _auth.createUserWithEmailAndPassword(
+      email: email.trim(),
+      password: password.trim(),
+    );
+    notifyListeners();
+    return credential;
+  }
+
   // Check if username is already taken by another user in Firestore
   Future<bool> isUsernameAvailable(String username) async {
     final clean = username.trim().replaceAll('@', '').toLowerCase();
