@@ -109,134 +109,131 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     bool isMutedLocally = false;
     bool isSpeakerOn = false;
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF0F1418),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    Get.bottomSheet(
+      StatefulBuilder(
+        builder: (context, setCallState) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.7,
+            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+            decoration: const BoxDecoration(
+              color: Color(0xFF0F1418),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  children: [
+                    Text(
+                      isVideo ? 'Video Call' : 'Voice Call',
+                      style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 20),
+                    CircleAvatar(
+                      radius: 54,
+                      backgroundImage: widget.chat.avatarUrl.isNotEmpty
+                          ? NetworkImage(widget.chat.avatarUrl)
+                          : null,
+                      backgroundColor: TeleTheme.primary,
+                      child: widget.chat.avatarUrl.isEmpty
+                          ? Text(
+                              widget.chat.name.substring(0, 1).toUpperCase(),
+                              style: const TextStyle(
+                                  fontSize: 36, color: Colors.white),
+                            )
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      widget.chat.name,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.lock, size: 14, color: Colors.greenAccent),
+                        SizedBox(width: 6),
+                        Text(
+                          'End-to-End Encrypted',
+                          style: TextStyle(
+                              color: Colors.greenAccent, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Calling...',
+                      style: TextStyle(color: Colors.white70, fontSize: 15),
+                    ),
+                  ],
+                ),
+
+                // Call Action Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Mute Button
+                    GestureDetector(
+                      onTap: () {
+                        setCallState(() => isMutedLocally = !isMutedLocally);
+                      },
+                      child: CircleAvatar(
+                        radius: 28,
+                        backgroundColor: isMutedLocally
+                            ? Colors.white
+                            : Colors.white.withAlpha(30),
+                        child: Icon(
+                          isMutedLocally ? Icons.mic_off : Icons.mic,
+                          color: isMutedLocally ? Colors.black : Colors.white,
+                        ),
+                      ),
+                    ),
+
+                    // End Call Button
+                    GestureDetector(
+                      onTap: () => Get.back(),
+                      child: const CircleAvatar(
+                        radius: 34,
+                        backgroundColor: Colors.red,
+                        child: Icon(
+                          Icons.call_end,
+                          color: Colors.white,
+                          size: 32,
+                        ),
+                      ),
+                    ),
+
+                    // Speaker Button
+                    GestureDetector(
+                      onTap: () {
+                        setCallState(() => isSpeakerOn = !isSpeakerOn);
+                      },
+                      child: CircleAvatar(
+                        radius: 28,
+                        backgroundColor: isSpeakerOn
+                            ? Colors.white
+                            : Colors.white.withAlpha(30),
+                        child: Icon(
+                          isSpeakerOn ? Icons.volume_up : Icons.volume_down,
+                          color: isSpeakerOn ? Colors.black : Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
       ),
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setCallState) {
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.7,
-              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    children: [
-                      Text(
-                        isVideo ? 'Video Call' : 'Voice Call',
-                        style: const TextStyle(
-                            color: Colors.white54,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(height: 20),
-                      CircleAvatar(
-                        radius: 54,
-                        backgroundImage: widget.chat.avatarUrl.isNotEmpty
-                            ? NetworkImage(widget.chat.avatarUrl)
-                            : null,
-                        backgroundColor: TeleTheme.primary,
-                        child: widget.chat.avatarUrl.isEmpty
-                            ? Text(
-                                widget.chat.name.substring(0, 1).toUpperCase(),
-                                style: const TextStyle(
-                                    fontSize: 36, color: Colors.white),
-                              )
-                            : null,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        widget.chat.name,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.lock, size: 14, color: Colors.greenAccent),
-                          SizedBox(width: 6),
-                          Text(
-                            'End-to-End Encrypted',
-                            style: TextStyle(
-                                color: Colors.greenAccent, fontSize: 13),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Calling...',
-                        style: TextStyle(color: Colors.white70, fontSize: 15),
-                      ),
-                    ],
-                  ),
-
-                  // Call Action Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      // Mute Button
-                      GestureDetector(
-                        onTap: () {
-                          setCallState(() => isMutedLocally = !isMutedLocally);
-                        },
-                        child: CircleAvatar(
-                          radius: 28,
-                          backgroundColor: isMutedLocally
-                              ? Colors.white
-                              : Colors.white.withAlpha(30),
-                          child: Icon(
-                            isMutedLocally ? Icons.mic_off : Icons.mic,
-                            color: isMutedLocally ? Colors.black : Colors.white,
-                          ),
-                        ),
-                      ),
-
-                      // End Call Button
-                      GestureDetector(
-                        onTap: () => Navigator.pop(ctx),
-                        child: const CircleAvatar(
-                          radius: 34,
-                          backgroundColor: Colors.red,
-                          child: Icon(
-                            Icons.call_end,
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                        ),
-                      ),
-
-                      // Speaker Button
-                      GestureDetector(
-                        onTap: () {
-                          setCallState(() => isSpeakerOn = !isSpeakerOn);
-                        },
-                        child: CircleAvatar(
-                          radius: 28,
-                          backgroundColor: isSpeakerOn
-                              ? Colors.white
-                              : Colors.white.withAlpha(30),
-                          child: Icon(
-                            isSpeakerOn ? Icons.volume_up : Icons.volume_down,
-                            color: isSpeakerOn ? Colors.black : Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+      isScrollControlled: true,
     );
   }
 

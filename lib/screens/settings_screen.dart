@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:telegram_lite/services/auth_service.dart';
 import 'package:telegram_lite/services/mock_data.dart';
 import 'package:telegram_lite/theme/app_theme.dart';
@@ -26,15 +27,11 @@ class SettingsScreen extends StatelessWidget {
   });
 
   void _openCurrentUserProfile(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => UserProfileScreen(
-          isCurrentUser: true,
-          authService: authService,
-          dataService: dataService,
-        ),
-      ),
-    );
+    Get.to(() => UserProfileScreen(
+      isCurrentUser: true,
+      authService: authService,
+      dataService: dataService,
+    ));
   }
 
   @override
@@ -227,14 +224,10 @@ class SettingsScreen extends StatelessWidget {
                   color: isDark ? Colors.grey[600] : Colors.grey[400],
                 ),
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => TelegramPremiumScreen(
-                        dataService: dataService,
-                        authService: authService,
-                      ),
-                    ),
-                  );
+                  Get.to(() => TelegramPremiumScreen(
+                    dataService: dataService,
+                    authService: authService,
+                  ));
                 },
               ),
 
@@ -359,7 +352,27 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
                 onTap: () {
-                  authService.signOut();
+                  Get.dialog(
+                    AlertDialog(
+                      title: const Text('Log Out'),
+                      content: const Text('Are you sure you want to log out of TeleLite?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Get.back(),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Get.back();
+                            authService.signOut();
+                            Get.snackbar('Logged Out', 'You have been logged out.');
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                          child: const Text('Log Out', style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  );
                 },
               ),
 
@@ -431,10 +444,9 @@ class SettingsScreen extends StatelessWidget {
         color: isDark ? Colors.grey[600] : Colors.grey[400],
       ),
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => page),
-        );
+        Get.to(() => page);
       },
     );
   }
 }
+

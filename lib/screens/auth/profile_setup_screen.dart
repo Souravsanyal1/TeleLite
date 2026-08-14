@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -41,9 +42,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   void _showCustomPhotoDialog() {
     final urlController = TextEditingController(text: _selectedAvatarUrl);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
+    Get.dialog(
+      AlertDialog(
         title: const Text('Custom Profile Photo'),
         content: TextField(
           controller: urlController,
@@ -55,7 +55,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Get.back(),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
@@ -65,7 +65,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   _selectedAvatarUrl = urlController.text.trim();
                 });
               }
-              Navigator.pop(context);
+              Get.back();
             },
             style: ElevatedButton.styleFrom(backgroundColor: TeleTheme.primary),
             child: const Text('Use Photo', style: TextStyle(color: Colors.white)),

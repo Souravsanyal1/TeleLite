@@ -72,119 +72,115 @@ class _ContactsScreenState extends State<ContactsScreen> {
     bool isSearchingUser = false;
     String? errorText;
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('Add Contact by Number'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Enter phone number to search for registered TeleLite users.',
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
+    Get.dialog(
+      StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('Add Contact by Number'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Enter phone number to search for registered TeleLite users.',
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    labelText: 'Phone Number',
+                    hintText: '+8801XXXXXXXXX',
+                    prefixIcon: const Icon(Icons.phone),
+                    errorText: errorText,
+                    border: const OutlineInputBorder(),
                   ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: phoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(
-                      labelText: 'Phone Number',
-                      hintText: '+8801XXXXXXXXX',
-                      prefixIcon: const Icon(Icons.phone),
-                      errorText: errorText,
-                      border: const OutlineInputBorder(),
-                    ),
-                    autofocus: true,
+                  autofocus: true,
+                ),
+                if (isSearchingUser) ...[
+                  const SizedBox(height: 16),
+                  const Center(
+                    child: CircularProgressIndicator(color: TeleTheme.primary),
                   ),
-                  if (isSearchingUser) ...[
-                    const SizedBox(height: 16),
-                    const Center(
-                      child: CircularProgressIndicator(color: TeleTheme.primary),
-                    ),
-                  ],
                 ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: isSearchingUser
-                      ? null
-                      : () async {
-                          final phone = phoneController.text.trim();
-                          if (phone.isEmpty) {
-                            setDialogState(() {
-                              errorText = 'Please enter a phone number.';
-                            });
-                            return;
-                          }
-
-                          setDialogState(() {
-                            isSearchingUser = true;
-                            errorText = null;
-                          });
-
-                          final userDoc = await widget.authService.findUserByPhoneNumber(phone);
-
-                          if (!context.mounted) return;
-
-                          setDialogState(() {
-                            isSearchingUser = false;
-                          });
-
-                          if (userDoc != null && userDoc.exists) {
-                            final data = userDoc.data() as Map<String, dynamic>;
-                            final name = data['displayName'] ?? 'TeleLite User';
-                            final userPhone = data['phoneNumber'] ?? phone;
-                            final photoUrl = data['photoUrl'] ??
-                                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
-
-                            widget.dataService.addContact(
-                              Contact(
-                                id: userDoc.id,
-                                name: name,
-                                phone: userPhone,
-                                avatarUrl: photoUrl,
-                                isOnline: data['isOnline'] ?? true,
-                              ),
-                            );
-
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Added $name ($userPhone) to your Contacts!'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          } else {
-                            setDialogState(() {
-                              errorText = 'No registered user found with phone $phone on TeleLite.';
-                            });
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(backgroundColor: TeleTheme.primary),
-                  child: const Text('Add Contact', style: TextStyle(color: Colors.white)),
-                ),
               ],
-            );
-          },
-        );
-      },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: isSearchingUser
+                    ? null
+                    : () async {
+                        final phone = phoneController.text.trim();
+                        if (phone.isEmpty) {
+                          setDialogState(() {
+                            errorText = 'Please enter a phone number.';
+                          });
+                          return;
+                        }
+
+                        setDialogState(() {
+                          isSearchingUser = true;
+                          errorText = null;
+                        });
+
+                        final userDoc = await widget.authService.findUserByPhoneNumber(phone);
+
+                        if (!context.mounted) return;
+
+                        setDialogState(() {
+                          isSearchingUser = false;
+                        });
+
+                        if (userDoc != null && userDoc.exists) {
+                          final data = userDoc.data() as Map<String, dynamic>;
+                          final name = data['displayName'] ?? 'TeleLite User';
+                          final userPhone = data['phoneNumber'] ?? phone;
+                          final photoUrl = data['photoUrl'] ??
+                              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
+
+                          widget.dataService.addContact(
+                            Contact(
+                              id: userDoc.id,
+                              name: name,
+                              phone: userPhone,
+                              avatarUrl: photoUrl,
+                              isOnline: data['isOnline'] ?? true,
+                            ),
+                          );
+
+                          Get.back();
+                          Get.snackbar(
+                            'Success',
+                            'Added $name ($userPhone) to your Contacts!',
+                            backgroundColor: Colors.green.withAlpha(200),
+                            colorText: Colors.white,
+                          );
+                        } else {
+                          setDialogState(() {
+                            errorText = 'No registered user found with phone $phone on TeleLite.';
+                          });
+                        }
+                      },
+                style: ElevatedButton.styleFrom(backgroundColor: TeleTheme.primary),
+                child: const Text('Add Contact', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
   // Dialog: Create New Group
   void _showCreateGroupDialog() {
     final nameController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
+    Get.dialog(
+      AlertDialog(
         title: const Text('Create New Group'),
         content: TextField(
           controller: nameController,
@@ -196,7 +192,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Get.back(),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
@@ -207,16 +203,11 @@ class _ContactsScreenState extends State<ContactsScreen> {
                   name: name,
                   avatarUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=150',
                 );
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ChatDetailScreen(
-                      chat: newChat,
-                      dataService: widget.dataService,
-                    ),
-                  ),
-                );
+                Get.back();
+                Get.to(() => ChatDetailScreen(
+                  chat: newChat,
+                  dataService: widget.dataService,
+                ));
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: TeleTheme.primary),
@@ -229,9 +220,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
 
   // Dialog: Create New Secret Chat
   void _showCreateSecretChatDialog(List<Contact> contacts) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
+    Get.dialog(
+      AlertDialog(
         title: const Text('New Secret Chat 🔒'),
         content: SizedBox(
           width: double.maxFinite,
@@ -261,16 +251,11 @@ class _ContactsScreenState extends State<ContactsScreen> {
                           name: contact.name,
                           avatarUrl: contact.avatarUrl,
                         );
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ChatDetailScreen(
-                              chat: newChat,
-                              dataService: widget.dataService,
-                            ),
-                          ),
-                        );
+                        Get.back();
+                        Get.to(() => ChatDetailScreen(
+                          chat: newChat,
+                          dataService: widget.dataService,
+                        ));
                       },
                     );
                   },
@@ -288,9 +273,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
     final nameController = TextEditingController();
     final descController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
+    Get.dialog(
+      AlertDialog(
         title: const Text('Create New Channel 📢'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -315,7 +299,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Get.back(),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
@@ -326,16 +310,11 @@ class _ContactsScreenState extends State<ContactsScreen> {
                   name: name,
                   description: descController.text.trim(),
                 );
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ChatDetailScreen(
-                      chat: newChat,
-                      dataService: widget.dataService,
-                    ),
-                  ),
-                );
+                Get.back();
+                Get.to(() => ChatDetailScreen(
+                  chat: newChat,
+                  dataService: widget.dataService,
+                ));
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: TeleTheme.primary),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../models/models.dart';
 import '../services/mock_data.dart';
 import '../theme/app_theme.dart';
@@ -44,13 +45,13 @@ class _CreateGroupScreenState extends State<CreateGroupScreen>
 
   Future<void> _create() async {
     if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(widget.isChannel
-              ? 'Please enter a channel name'
-              : 'Please enter a group name'),
-          backgroundColor: Colors.red,
-        ),
+      Get.snackbar(
+        'Error',
+        widget.isChannel
+            ? 'Please enter a channel name'
+            : 'Please enter a group name',
+        backgroundColor: Colors.red.withAlpha(200),
+        colorText: Colors.white,
       );
       return;
     }
@@ -79,17 +80,11 @@ class _CreateGroupScreenState extends State<CreateGroupScreen>
     if (!mounted) return;
     setState(() => _isCreating = false);
 
-    // Pop this screen and open Management
-    Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => GroupManagementScreen(
-          chat: newChat,
-          dataService: widget.dataService,
-        ),
-      ),
-    );
+    Get.back();
+    Get.to(() => GroupManagementScreen(
+      chat: newChat,
+      dataService: widget.dataService,
+    ));
   }
 
   @override

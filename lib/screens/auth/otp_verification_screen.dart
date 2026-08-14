@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -94,8 +95,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         });
 
         if (success) {
-          // Pop back to root - main.dart StreamBuilder will route to ProfileSetup or Home
-          Navigator.of(context).popUntil((route) => route.isFirst);
+          Get.until((route) => route.isFirst);
         } else {
           setState(() {
             _errorMessage = 'Invalid verification code entered. Please check your SMS and try again.';

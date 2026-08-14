@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/models.dart';
 import '../services/cloudinary_service.dart';
@@ -109,26 +110,16 @@ class _GroupManagementScreenState extends State<GroupManagementScreen>
       _chat = _latestChat;
     });
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Changes saved!'),
-          backgroundColor: TeleTheme.primary,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      Get.snackbar('Saved', 'Changes saved!',
+          backgroundColor: TeleTheme.primary, colorText: Colors.white);
     }
   }
 
   void _copyInviteLink() {
     final link = _chat.inviteLink ?? '';
     Clipboard.setData(ClipboardData(text: link));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Copied: $link'),
-        backgroundColor: TeleTheme.primary,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    Get.snackbar('Copied', 'Copied: $link',
+        backgroundColor: TeleTheme.primary, colorText: Colors.white);
   }
 
   /// Pick a photo (gallery) and upload to Cloudinary, then update group avatar

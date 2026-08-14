@@ -204,77 +204,68 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
   void _showNewChatMenu(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: isDark ? const Color(0xFF1A2330) : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white24 : Colors.black26,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Text(
-                'New Conversation',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
+    Get.bottomSheet(
+      Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2330) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : Colors.black26,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            _menuTile(
-              context: context,
-              icon: Icons.group_add,
-              color: const Color(0xFF8A2387),
-              title: 'New Group',
-              subtitle: 'Add members and start a group chat',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => CreateGroupScreen(
-                      dataService: widget.dataService,
-                      isChannel: false,
-                    ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Text(
+                  'New Conversation',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
-                );
-              },
-            ),
-            _menuTile(
-              context: context,
-              icon: Icons.campaign,
-              color: TeleTheme.primary,
-              title: 'New Channel',
-              subtitle: 'Broadcast to unlimited subscribers',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => CreateGroupScreen(
-                      dataService: widget.dataService,
-                      isChannel: true,
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              _menuTile(
+                context: context,
+                icon: Icons.group_add,
+                color: const Color(0xFF8A2387),
+                title: 'New Group',
+                subtitle: 'Add members and start a group chat',
+                onTap: () {
+                  Get.back();
+                  Get.to(() => CreateGroupScreen(
+                    dataService: widget.dataService,
+                    isChannel: false,
+                  ));
+                },
+              ),
+              _menuTile(
+                context: context,
+                icon: Icons.campaign,
+                color: TeleTheme.primary,
+                title: 'New Channel',
+                subtitle: 'Broadcast to unlimited subscribers',
+                onTap: () {
+                  Get.back();
+                  Get.to(() => CreateGroupScreen(
+                    dataService: widget.dataService,
+                    isChannel: true,
+                  ));
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );

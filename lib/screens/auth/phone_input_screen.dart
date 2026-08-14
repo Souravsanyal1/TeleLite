@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import 'otp_verification_screen.dart';
@@ -60,22 +61,18 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
 
         if (result.isSuccess) {
           if (result.errorCode == 421 && result.otpCode != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(result.message),
-                duration: const Duration(seconds: 8),
-                backgroundColor: Colors.amber[800],
-              ),
+            Get.snackbar(
+              'Notice',
+              result.message,
+              backgroundColor: Colors.amber[800],
+              colorText: Colors.white,
+              duration: const Duration(seconds: 8),
             );
           }
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => OtpVerificationScreen(
-                phoneNumber: fullPhoneNumber,
-                authService: widget.authService,
-              ),
-            ),
-          );
+          Get.to(() => OtpVerificationScreen(
+            phoneNumber: fullPhoneNumber,
+            authService: widget.authService,
+          ));
         } else {
           setState(() {
             _errorMessage = result.message;
@@ -93,50 +90,48 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
   }
 
   void _showCountryPicker() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    Get.bottomSheet(
+      Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Select Country',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: _countries.length,
+                itemBuilder: (context, index) {
+                  final country = _countries[index];
+                  return ListTile(
+                    leading: Text(country['flag']!, style: const TextStyle(fontSize: 24)),
+                    title: Text(country['name']!),
+                    trailing: Text(
+                      country['code']!,
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: TeleTheme.primary),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        _selectedCountryName = country['name']!;
+                        _selectedCountryCode = country['code']!;
+                      });
+                      Get.back();
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Select Country',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _countries.length,
-                  itemBuilder: (context, index) {
-                    final country = _countries[index];
-                    return ListTile(
-                      leading: Text(country['flag']!, style: const TextStyle(fontSize: 24)),
-                      title: Text(country['name']!),
-                      trailing: Text(
-                        country['code']!,
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: TeleTheme.primary),
-                      ),
-                      onTap: () {
-                        setState(() {
-                          _selectedCountryName = country['name']!;
-                          _selectedCountryCode = country['code']!;
-                        });
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 
