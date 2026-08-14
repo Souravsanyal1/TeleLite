@@ -19,6 +19,8 @@ class Chat {
   final String? profileColor;
   final String? emojiStatus;
   final ChatCategory category;
+  final bool isOfficial;
+  final bool isAutoJoin;
   // Group/Channel management
   final String? ownerId;
   final List<String> memberIds;
@@ -44,6 +46,8 @@ class Chat {
     this.isPremium = false,
     this.isStealthMode = false,
     this.disableSharing = false,
+    this.isOfficial = false,
+    this.isAutoJoin = false,
     this.profileColor,
     this.emojiStatus,
     this.category = ChatCategory.personal,
@@ -72,6 +76,8 @@ class Chat {
     bool? isPremium,
     bool? isStealthMode,
     bool? disableSharing,
+    bool? isOfficial,
+    bool? isAutoJoin,
     String? profileColor,
     String? emojiStatus,
     ChatCategory? category,
@@ -99,6 +105,8 @@ class Chat {
       isPremium: isPremium ?? this.isPremium,
       isStealthMode: isStealthMode ?? this.isStealthMode,
       disableSharing: disableSharing ?? this.disableSharing,
+      isOfficial: isOfficial ?? this.isOfficial,
+      isAutoJoin: isAutoJoin ?? this.isAutoJoin,
       profileColor: profileColor ?? this.profileColor,
       emojiStatus: emojiStatus ?? this.emojiStatus,
       category: category ?? this.category,

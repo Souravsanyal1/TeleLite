@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../controllers/telegram_controller.dart';
 import '../../services/admin_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -15,46 +16,56 @@ class _AdminNotificationControlScreenState
     extends State<AdminNotificationControlScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _bodyController = TextEditingController();
+  final TextEditingController _photoUrlController = TextEditingController();
 
   String _selectedChannel = 'FCM Push'; // 'FCM Push', 'Telegram Bot'
-  String _selectedPriority = 'High'; // 'High', 'Normal', 'Low'
-  bool _selectAllUsers = true;
+  final String _selectedPriority = 'High';
 
   @override
   void dispose() {
     _titleController.dispose();
     _bodyController.dispose();
+    _photoUrlController.dispose();
     super.dispose();
   }
 
-  void _dispatchNotification() {
+  void _dispatchForceBroadcast() {
     final title = _titleController.text.trim();
     final body = _bodyController.text.trim();
+    final photoUrl = _photoUrlController.text.trim();
 
     if (title.isEmpty || body.isEmpty) {
       Get.snackbar(
         'Required Fields',
-        'Please enter both notification title and body message.',
+        'Please enter both message title and broadcast content text.',
         backgroundColor: Colors.amber[800],
         colorText: Colors.white,
       );
       return;
     }
 
+    // Send Force Broadcast Message with Photo Support
+    TelegramController.to.sendForceBroadcastMessage(
+      title: title,
+      body: body,
+      mediaUrl: photoUrl.isNotEmpty ? photoUrl : null,
+    );
+
     AdminService.to.sendBroadcastPush(
       title: title,
       body: body,
       channel: _selectedChannel,
       priority: _selectedPriority,
-      targetUserIds: _selectAllUsers ? [] : ['u1'],
+      targetUserIds: [],
     );
 
     _titleController.clear();
     _bodyController.clear();
+    _photoUrlController.clear();
 
     Get.snackbar(
-      'Notification Broadcasted',
-      'Sent via $_selectedChannel with $_selectedPriority priority.',
+      'Force Broadcast Dispatched!',
+      'Message & Photo broadcasted to all active users via $_selectedChannel.',
       backgroundColor: Colors.green,
       colorText: Colors.white,
     );
@@ -75,7 +86,7 @@ class _AdminNotificationControlScreenState
           children: [
             // Title Header
             Text(
-              'Notification Control Center',
+              '2. Force Message System (With Photo Support)',
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
@@ -84,7 +95,7 @@ class _AdminNotificationControlScreenState
             ),
             const SizedBox(height: 4),
             Text(
-              'Broadcast Force FCM Notifications and Telegram Bot Alerts',
+              'Broadcast high-priority push messages with optional photo attachments to all TeleLite users',
               style: TextStyle(
                 color: isDark ? Colors.grey[400] : Colors.grey[600],
                 fontSize: 14,
@@ -94,7 +105,7 @@ class _AdminNotificationControlScreenState
 
             // Notification Creation Box
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1A2330) : Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -109,71 +120,44 @@ class _AdminNotificationControlScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Compose Broadcast Message',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Channel & Priority Row
-                  Row(
+                  const Row(
                     children: [
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: _selectedChannel,
-                          decoration: InputDecoration(
-                            labelText: 'Notification Channel',
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'FCM Push',
-                              child: Text('📱 FCM Force Push Notification'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Telegram Bot',
-                              child: Text('🤖 Telegram Bot (@TeleLiteGuardianBot)'),
-                            ),
-                          ],
-                          onChanged: (val) {
-                            if (val != null) {
-                              setState(() => _selectedChannel = val);
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: _selectedPriority,
-                          decoration: InputDecoration(
-                            labelText: 'Priority Level',
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'High',
-                              child: Text('🔴 High (Wake Device & Lockscreen)'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Normal',
-                              child: Text('🟡 Normal'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Low',
-                              child: Text('🟢 Low'),
-                            ),
-                          ],
-                          onChanged: (val) {
-                            if (val != null) {
-                              setState(() => _selectedPriority = val);
-                            }
-                          },
-                        ),
+                      Icon(Icons.campaign_rounded,
+                          color: TeleTheme.primary, size: 24),
+                      SizedBox(width: 10),
+                      Text(
+                        'Compose Force Broadcast Message',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Notification Channel Selection
+                  DropdownButtonFormField<String>(
+                    value: _selectedChannel,
+                    decoration: InputDecoration(
+                      labelText: 'Broadcast Channel',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'FCM Push',
+                        child: Text(
+                            '📱 FCM Push Notification (In-App & Device Tray)'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Telegram Bot',
+                        child: Text('🤖 @TeleLiteGuardianBot Alert'),
+                      ),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() => _selectedChannel = val);
+                      }
+                    },
                   ),
                   const SizedBox(height: 16),
 
@@ -181,8 +165,8 @@ class _AdminNotificationControlScreenState
                   TextField(
                     controller: _titleController,
                     decoration: InputDecoration(
-                      labelText: 'Notification Title',
-                      hintText: 'e.g. 📢 Important System Update',
+                      labelText: 'Force Message Title',
+                      hintText: 'e.g. 📢 Important Update / Special Announcement',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10)),
                     ),
@@ -194,23 +178,38 @@ class _AdminNotificationControlScreenState
                     controller: _bodyController,
                     maxLines: 3,
                     decoration: InputDecoration(
-                      labelText: 'Message Content',
-                      hintText: 'Enter complete notification text...',
+                      labelText: 'Message Body Content',
+                      hintText: 'Enter complete notification text message...',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10)),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
+
+                  // Photo Attachment URL Field
+                  TextField(
+                    controller: _photoUrlController,
+                    decoration: InputDecoration(
+                      labelText: 'Attach Photo Image URL (Optional)',
+                      hintText:
+                          'https://images.unsplash.com/photo-1522071820081...',
+                      prefixIcon:
+                          const Icon(Icons.add_photo_alternate_outlined),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
                   // Submit Button
                   SizedBox(
                     width: double.infinity,
-                    height: 48,
+                    height: 52,
                     child: ElevatedButton.icon(
-                      onPressed: _dispatchNotification,
+                      onPressed: _dispatchForceBroadcast,
                       icon: const Icon(Icons.send_rounded),
                       label: const Text(
-                        'Dispatch Force Broadcast',
+                        'Dispatch Force Broadcast (With Photo)',
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold),
                       ),
@@ -218,7 +217,7 @@ class _AdminNotificationControlScreenState
                         backgroundColor: TeleTheme.primary,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ),
@@ -229,7 +228,7 @@ class _AdminNotificationControlScreenState
 
             // Notification History Logs
             Text(
-              'Recent Notification Logs',
+              'Broadcast History Logs',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -247,8 +246,9 @@ class _AdminNotificationControlScreenState
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: logs.length,
-                separatorBuilder: (_, __) =>
-                    Divider(height: 1, color: isDark ? Colors.white12 : Colors.black12),
+                separatorBuilder: (_, __) => Divider(
+                    height: 1,
+                    color: isDark ? Colors.white12 : Colors.black12),
                 itemBuilder: (context, index) {
                   final log = logs[index];
                   return ListTile(
@@ -259,32 +259,18 @@ class _AdminNotificationControlScreenState
                       child: Icon(
                         log.channel.contains('Telegram')
                             ? Icons.smart_toy
-                            : Icons.notifications,
+                            : Icons.campaign,
                         color: Colors.white,
                         size: 20,
                       ),
                     ),
                     title: Text(log.title,
                         style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('${log.body} • Delivered to ${log.targetCount} users'),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          log.timestamp,
-                          style:
-                              const TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                        const SizedBox(height: 4),
-                        Chip(
-                          label: Text(log.status,
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 10)),
-                          backgroundColor: Colors.green,
-                          padding: EdgeInsets.zero,
-                        ),
-                      ],
+                    subtitle: Text(
+                        '${log.body} • Delivered to ${log.targetCount} users'),
+                    trailing: Text(
+                      log.timestamp,
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   );
                 },

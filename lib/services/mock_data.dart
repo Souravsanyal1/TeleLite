@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import '../controllers/telegram_controller.dart';
 import '../models/models.dart';
 
@@ -20,8 +19,10 @@ class TelegramDataService extends ChangeNotifier {
   }
 
   List<Chat> get chats => _controller.chats;
-  List<GroupMember> getMembersForChat(String chatId) => _controller.getMembersForChat(chatId);
-  List<Message> getMessagesForChat(String chatId) => _controller.getMessagesForChat(chatId);
+  List<GroupMember> getMembersForChat(String chatId) =>
+      _controller.getMembersForChat(chatId);
+  List<Message> getMessagesForChat(String chatId) =>
+      _controller.getMessagesForChat(chatId);
 
   void markChatAsRead(String chatId) {
     _controller.markChatAsRead(chatId);
@@ -39,8 +40,10 @@ class TelegramDataService extends ChangeNotifier {
     return res;
   }
 
-  void sendMessage(String chatId, String text, {String? mediaUrl, Chat? fallbackChat}) {
-    _controller.sendMessage(chatId, text, mediaUrl: mediaUrl, fallbackChat: fallbackChat);
+  void sendMessage(String chatId, String text,
+      {String? mediaUrl, Chat? fallbackChat}) {
+    _controller.sendMessage(chatId, text,
+        mediaUrl: mediaUrl, fallbackChat: fallbackChat);
     notifyListeners();
   }
 
@@ -137,4 +140,3 @@ class TelegramDataService extends ChangeNotifier {
   List<Contact> get contacts => _controller.contacts;
   List<CallItem> get calls => _controller.calls;
 }
-

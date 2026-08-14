@@ -1,10 +1,100 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../controllers/telegram_controller.dart';
 import '../../services/admin_service.dart';
 import '../../theme/app_theme.dart';
 
-class AdminDashboardScreen extends StatelessWidget {
+class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
+
+  @override
+  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
+}
+
+class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
+  final TextEditingController _personalMessageController =
+      TextEditingController();
+  final TextEditingController _personalPhotoController =
+      TextEditingController();
+
+  final TextEditingController _officialNameController =
+      TextEditingController();
+  final TextEditingController _officialDescController =
+      TextEditingController();
+  final TextEditingController _officialPhotoController =
+      TextEditingController();
+
+  bool _isChannel = false;
+  bool _isAutoJoin = true;
+  String _selectedUserId = 'u1';
+
+  @override
+  void dispose() {
+    _personalMessageController.dispose();
+    _personalPhotoController.dispose();
+    _officialNameController.dispose();
+    _officialDescController.dispose();
+    _officialPhotoController.dispose();
+    super.dispose();
+  }
+
+  void _handleSendPersonalOfficialMessage() {
+    final text = _personalMessageController.text.trim();
+    final photoUrl = _personalPhotoController.text.trim();
+
+    if (text.isEmpty) {
+      Get.snackbar('Required', 'Please enter personal official message text.',
+          backgroundColor: Colors.amber[800], colorText: Colors.white);
+      return;
+    }
+
+    TelegramController.to.sendPersonalOfficialMessage(
+      userId: _selectedUserId,
+      text: text,
+      mediaUrl: photoUrl.isNotEmpty ? photoUrl : null,
+    );
+
+    _personalMessageController.clear();
+    _personalPhotoController.clear();
+
+    Get.snackbar(
+      'Official Message Sent',
+      'Personal official message dispatched from TeleLite Official.',
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+    );
+  }
+
+  void _handleCreateOfficialGroupOrChannel() {
+    final name = _officialNameController.text.trim();
+    final desc = _officialDescController.text.trim();
+    final photoUrl = _officialPhotoController.text.trim();
+
+    if (name.isEmpty) {
+      Get.snackbar('Required', 'Please enter Official Group/Channel name.',
+          backgroundColor: Colors.amber[800], colorText: Colors.white);
+      return;
+    }
+
+    final newChat = TelegramController.to.createOfficialGroupOrChannel(
+      name: name,
+      description: desc,
+      isChannel: _isChannel,
+      isAutoJoin: _isAutoJoin,
+      avatarUrl: photoUrl,
+    );
+
+    _officialNameController.clear();
+    _officialDescController.clear();
+    _officialPhotoController.clear();
+
+    Get.snackbar(
+      'Official ${_isChannel ? "Channel" : "Group"} Created!',
+      '${newChat.name} created. ${_isAutoJoin ? "(Auto-Join Enabled for New Users)" : ""}',
+      backgroundColor: TeleTheme.primary,
+      colorText: Colors.white,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,14 +103,14 @@ class AdminDashboardScreen extends StatelessWidget {
 
     return Obx(() {
       final stats = service.stats.value;
-      final reports = service.reports;
+      final usersList = service.users;
 
       return SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title Header
+            // ==================== FEATURE 1: USER COUNT & STATS ====================
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -28,7 +118,7 @@ class AdminDashboardScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Admin Dashboard',
+                      'Admin Dashboard Overview',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
@@ -37,85 +127,63 @@ class AdminDashboardScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Real-time metrics, system health, and moderations',
+                      '1. Total Users Stats, Personal Messages & Official Auto-Join Groups',
                       style: TextStyle(
                           color: isDark ? Colors.grey[400] : Colors.grey[600],
                           fontSize: 14),
                     ),
                   ],
                 ),
-                ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Refresh Stats'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: TeleTheme.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Stat Cards Grid
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    title: 'Total Users (কতজন ইউজার)',
+                    value: '${stats.totalUsers}',
+                    subtitle: '↑ ${stats.usersToday} joined today',
+                    icon: Icons.people_alt,
+                    color: Colors.blue,
+                    isDark: isDark,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildStatCard(
+                    title: 'Online Active Users',
+                    value: '${(stats.totalUsers * 0.42).toInt()}',
+                    subtitle: '🟢 Active on TeleLite Gateway',
+                    icon: Icons.online_prediction,
+                    color: Colors.green,
+                    isDark: isDark,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildStatCard(
+                    title: 'Official Auto-Join Channels',
+                    value:
+                        '${TelegramController.to.chats.where((c) => c.isOfficial).length}',
+                    subtitle: '⭐ Auto-join new users',
+                    icon: Icons.verified,
+                    color: TeleTheme.primary,
+                    isDark: isDark,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-
-            // Top Stat Cards Grid
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final crossCount = constraints.maxWidth > 900 ? 4 : 2;
-                return GridView.count(
-                  crossAxisCount: crossCount,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.8,
-                  children: [
-                    _buildStatCard(
-                      title: 'Total Users',
-                      value: '${stats.totalUsers}',
-                      subtitle: '↑ ${stats.usersToday} today',
-                      icon: Icons.people_alt,
-                      color: Colors.blue,
-                      isDark: isDark,
-                    ),
-                    _buildStatCard(
-                      title: 'Total Messages',
-                      value: '${stats.totalMessages}',
-                      subtitle: '↑ ${stats.messagesToday} today',
-                      icon: Icons.message,
-                      color: Colors.green,
-                      isDark: isDark,
-                    ),
-                    _buildStatCard(
-                      title: 'Pending Reports',
-                      value: '${stats.pendingReports}',
-                      subtitle: 'Needs action',
-                      icon: Icons.report_problem,
-                      color: Colors.orange,
-                      isDark: isDark,
-                    ),
-                    _buildStatCard(
-                      title: 'Active Blocks',
-                      value: '${stats.activeBlocks}',
-                      subtitle: 'Restricted users',
-                      icon: Icons.block,
-                      color: Colors.red,
-                      isDark: isDark,
-                    ),
-                  ],
-                );
-              },
-            ),
             const SizedBox(height: 32),
 
-            // User Growth & Recent Activity Section
+            // ==================== FEATURE 2 & 3: PERSONAL MESSAGE & OFFICIAL GROUP CREATION ====================
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Activity Summary Card
+                // SECTION 3: SEND PERSONAL OFFICIAL MESSAGE
                 Expanded(
-                  flex: 3,
                   child: Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -134,41 +202,83 @@ class AdminDashboardScreen extends StatelessWidget {
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.show_chart, color: TeleTheme.primary),
-                            SizedBox(width: 8),
+                            Icon(Icons.send_rounded, color: TeleTheme.primary),
+                            SizedBox(width: 10),
                             Text(
-                              'User Growth (Last 7 Days)',
+                              '3. Send Personal Official Message',
                               style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold),
+                                  fontSize: 17, fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        Container(
-                          height: 180,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF0F1418)
-                                : Colors.blue.withAlpha(15),
-                            borderRadius: BorderRadius.circular(12),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Send direct official message to individual user as TeleLite Official:',
+                          style: TextStyle(color: Colors.grey, fontSize: 13),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Select Target User Dropdown
+                        DropdownButtonFormField<String>(
+                          value: _selectedUserId,
+                          decoration: InputDecoration(
+                            labelText: 'Select Target User',
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10)),
                           ),
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.bar_chart,
-                                    size: 48, color: TeleTheme.primary),
-                                const SizedBox(height: 8),
-                                Text(
-                                  '📊 Active Users Peak: 1,234 (99.9% Uptime)',
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white70
-                                        : Colors.black87,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
+                          items: usersList.map((u) {
+                            return DropdownMenuItem(
+                              value: u.id,
+                              child: Text('👤 ${u.name} (@${u.username})'),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() => _selectedUserId = val);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Message Text Field
+                        TextField(
+                          controller: _personalMessageController,
+                          maxLines: 3,
+                          decoration: InputDecoration(
+                            labelText: 'Personal Official Message Text',
+                            hintText:
+                                'e.g. Welcome to TeleLite! Here is your official welcome guide...',
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Optional Photo URL
+                        TextField(
+                          controller: _personalPhotoController,
+                          decoration: InputDecoration(
+                            labelText: 'Photo Attachment URL (Optional)',
+                            hintText: 'https://images.unsplash.com/photo-...',
+                            prefixIcon: const Icon(Icons.image_outlined),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 46,
+                          child: ElevatedButton.icon(
+                            onPressed: _handleSendPersonalOfficialMessage,
+                            icon: const Icon(Icons.send, size: 16),
+                            label: const Text('Send Official Personal Message'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: TeleTheme.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
                             ),
                           ),
                         ),
@@ -177,11 +287,10 @@ class AdminDashboardScreen extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(width: 20),
+                const SizedBox(width: 24),
 
-                // Quick Telegram Bot Broadcast Box
+                // SECTION 4: CREATE OFFICIAL GROUP / CHANNEL (WITH AUTO JOIN)
                 Expanded(
-                  flex: 2,
                   child: Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -200,47 +309,106 @@ class AdminDashboardScreen extends StatelessWidget {
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.smart_toy, color: Colors.blueAccent),
-                            SizedBox(width: 8),
+                            Icon(Icons.verified, color: Colors.amber),
+                            SizedBox(width: 10),
                             Text(
-                              'Telegram Bot Quick Notice',
+                              '4. Create Official Group / Channel',
                               style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
+                                  fontSize: 17, fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 6),
                         const Text(
-                          'Send immediate system notice to @TeleLiteGuardianBot:',
+                          'New registered users will automatically join this Official Group/Channel:',
                           style: TextStyle(color: Colors.grey, fontSize: 13),
                         ),
                         const SizedBox(height: 16),
+
+                        // Name Field
                         TextField(
+                          controller: _officialNameController,
                           decoration: InputDecoration(
-                            hintText: 'Enter alert message...',
+                            labelText: 'Official Group / Channel Name',
+                            hintText: 'e.g. TeleLite Official Updates',
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10)),
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 10),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Description Field
+                        TextField(
+                          controller: _officialDescController,
+                          decoration: InputDecoration(
+                            labelText: 'Description',
+                            hintText: 'Official channel for TeleLite news...',
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Photo URL
+                        TextField(
+                          controller: _officialPhotoController,
+                          decoration: InputDecoration(
+                            labelText: 'Avatar Photo URL (Optional)',
+                            hintText: 'https://images.unsplash.com/...',
+                            prefixIcon: const Icon(Icons.add_a_photo_outlined),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10)),
                           ),
                         ),
                         const SizedBox(height: 12),
+
+                        // Type Switch & Auto Join Checkbox
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ChoiceChip(
+                                label: const Text('Group'),
+                                selected: !_isChannel,
+                                onSelected: (sel) =>
+                                    setState(() => _isChannel = !sel),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: ChoiceChip(
+                                label: const Text('Channel'),
+                                selected: _isChannel,
+                                onSelected: (sel) =>
+                                    setState(() => _isChannel = sel),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+
+                        CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text(
+                            'Auto-Join for New Users (নতুন ইউজার অটো জয়েন হবে)',
+                            style: TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                          value: _isAutoJoin,
+                          onChanged: (val) =>
+                              setState(() => _isAutoJoin = val ?? true),
+                        ),
+                        const SizedBox(height: 12),
+
                         SizedBox(
                           width: double.infinity,
-                          child: FilledButton.icon(
-                            onPressed: () {
-                              service.sendBroadcastPush(
-                                title: '🤖 Admin Alert',
-                                body: 'System check executed cleanly.',
-                                channel: 'Telegram Bot',
-                                priority: 'High',
-                                targetUserIds: [],
-                              );
-                            },
-                            icon: const Icon(Icons.send, size: 16),
-                            label: const Text('Send Bot Broadcast'),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: TeleTheme.primary,
+                          height: 46,
+                          child: ElevatedButton.icon(
+                            onPressed: _handleCreateOfficialGroupOrChannel,
+                            icon: const Icon(Icons.add_circle_outline, size: 18),
+                            label: const Text('Create Official Auto-Join Chat'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.amber[800],
+                              foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10)),
                             ),
@@ -251,60 +419,6 @@ class AdminDashboardScreen extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-
-            const SizedBox(height: 32),
-
-            // Recent Reports List
-            Text(
-              'Pending Reports',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            Container(
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2330) : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: reports.length,
-                separatorBuilder: (_, __) =>
-                    Divider(height: 1, color: isDark ? Colors.white12 : Colors.black12),
-                itemBuilder: (context, index) {
-                  final item = reports[index];
-                  return ListTile(
-                    leading: const CircleAvatar(
-                      backgroundColor: Colors.orange,
-                      child: Icon(Icons.flag, color: Colors.white, size: 20),
-                    ),
-                    title: Text('${item.reporterName} reported ${item.reportedName}'),
-                    subtitle: Text('${item.reason} • "${item.contentSnippet}"'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        OutlinedButton(
-                          onPressed: () => service.resolveReport(item.id, false),
-                          child: const Text('Resolve'),
-                        ),
-                        const SizedBox(width: 8),
-                        FilledButton(
-                          onPressed: () => service.resolveReport(item.id, true),
-                          style: FilledButton.styleFrom(
-                              backgroundColor: Colors.red),
-                          child: const Text('Delete & Resolve'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
             ),
           ],
         ),
@@ -321,7 +435,7 @@ class AdminDashboardScreen extends StatelessWidget {
     required bool isDark,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2330) : Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -335,7 +449,6 @@ class AdminDashboardScreen extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -345,7 +458,7 @@ class AdminDashboardScreen extends StatelessWidget {
                 style: TextStyle(
                   color: isDark ? Colors.grey[400] : Colors.grey[600],
                   fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               CircleAvatar(
@@ -355,19 +468,21 @@ class AdminDashboardScreen extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 12),
           Text(
             value,
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 32,
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Colors.black87,
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             subtitle,
             style: TextStyle(
               color: color,
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: FontWeight.bold,
             ),
           ),

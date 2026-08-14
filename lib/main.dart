@@ -14,6 +14,8 @@ import 'package:telegram_lite/theme/app_theme.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:telegram_lite/services/notification_service.dart';
+import 'package:telegram_lite/screens/admin/admin_navigation_screen.dart';
+import 'package:telegram_lite/screens/auth/email_login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,9 +64,26 @@ class _TelegramLiteAppState extends State<TelegramLiteApp> {
         themeMode: _controller.themeMode.value,
         theme: TeleTheme.lightTheme(),
         darkTheme: TeleTheme.darkTheme(),
+        getPages: [
+          GetPage(name: '/admin', page: () => const AdminNavigationScreen()),
+          GetPage(
+              name: '/admin-login',
+              page: () => EmailLoginScreen(authService: _authService)),
+        ],
         home: StreamBuilder<User?>(
           stream: _authService.authStateChanges,
           builder: (context, authSnapshot) {
+            // Check direct Web URL fragment (e.g. http://localhost:8080/#/admin)
+            if (kIsWeb) {
+              final fragment = Uri.base.fragment;
+              if (fragment == '/admin' || fragment == 'admin') {
+                return const AdminNavigationScreen();
+              }
+              if (fragment == '/admin-login' || fragment == 'admin-login') {
+                return EmailLoginScreen(authService: _authService);
+              }
+            }
+
             if (authSnapshot.hasError) {
               return PhoneInputScreen(authService: _authService);
             }

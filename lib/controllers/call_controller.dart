@@ -74,7 +74,8 @@ class CallController extends GetxController {
     await remoteRenderer.initialize();
 
     _connectivity.onConnectivityChanged.listen((results) {
-      final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
+      final result =
+          results.isNotEmpty ? results.first : ConnectivityResult.none;
       _handleNetworkChange(result);
     });
 
@@ -114,7 +115,8 @@ class CallController extends GetxController {
       final offer = await _peerConnection!.createOffer();
       await _peerConnection!.setLocalDescription(offer);
 
-      await _signaling.sendCallOffer(chatId, currentCall.value!.callerId, calleeId, {
+      await _signaling
+          .sendCallOffer(chatId, currentCall.value!.callerId, calleeId, {
         'sdp': offer.toMap(),
         'encryptionKey': _encryption.getPublicKeyBase64(),
         'callType': isVideo ? 'video' : 'audio',
@@ -200,8 +202,9 @@ class CallController extends GetxController {
 
   void _setupPeerConnectionListeners() {
     _peerConnection!.onIceCandidate = (candidate) {
-      if (candidate != null && currentCall.value != null) {
-        _signaling.sendIceCandidate(currentCall.value!.chatId, candidate.toMap());
+      if (currentCall.value != null) {
+        _signaling.sendIceCandidate(
+            currentCall.value!.chatId, candidate.toMap());
       }
     };
 
@@ -277,7 +280,8 @@ class CallController extends GetxController {
       } else {
         final answer = await _peerConnection!.createAnswer();
         await _peerConnection!.setLocalDescription(answer);
-        await _signaling.sendCallAnswer(currentCall.value!.chatId, answer.toMap());
+        await _signaling.sendCallAnswer(
+            currentCall.value!.chatId, answer.toMap());
       }
 
       isReconnecting.value = false;
@@ -365,14 +369,14 @@ class CallController extends GetxController {
   }
 
   Future<void> _handleAnswer(Map<String, dynamic> answerData) async {
-    final answer =
-        RTCSessionDescription(answerData['sdp'], answerData['type']);
+    final answer = RTCSessionDescription(answerData['sdp'], answerData['type']);
     await _peerConnection!.setRemoteDescription(answer);
     callState.value = CallState.active;
     _startDurationTimer();
   }
 
-  Future<void> _handleRemoteCandidate(Map<String, dynamic> candidateData) async {
+  Future<void> _handleRemoteCandidate(
+      Map<String, dynamic> candidateData) async {
     await _peerConnection!.addCandidate(
       RTCIceCandidate(
         candidateData['candidate'],

@@ -141,6 +141,19 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.grey),
+            tooltip: 'Admin Portal Login',
+            onPressed: () {
+              Get.to(() => EmailLoginScreen(authService: widget.authService));
+            },
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

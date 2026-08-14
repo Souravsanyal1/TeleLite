@@ -401,6 +401,129 @@ class TelegramController extends GetxController {
     return newChat;
   }
 
+  Chat createOfficialGroupOrChannel({
+    required String name,
+    required String description,
+    required bool isChannel,
+    required bool isAutoJoin,
+    String avatarUrl = '',
+  }) {
+    final chatId = 'official_${DateTime.now().millisecondsSinceEpoch}';
+    final newChat = Chat(
+      id: chatId,
+      name: name,
+      avatarUrl: avatarUrl.isNotEmpty
+          ? avatarUrl
+          : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150',
+      lastMessage: description.isNotEmpty ? description : 'Official Group/Channel Created',
+      time: 'Just now',
+      isVerified: true,
+      isGroup: !isChannel,
+      isChannel: isChannel,
+      isOfficial: true,
+      isAutoJoin: isAutoJoin,
+      category: isChannel ? ChatCategory.channels : ChatCategory.work,
+      ownerId: 'official_admin',
+      memberCount: 1,
+    );
+
+    chats.insert(0, newChat);
+    chatMessages[chatId] = [
+      Message(
+        id: 'init_$chatId',
+        chatId: chatId,
+        senderName: 'TeleLite Official',
+        text: 'Welcome to official $name! ${isAutoJoin ? "(Auto-Join Enabled for New Users)" : ""}',
+        time: 'Just now',
+        isSentByMe: false,
+      ),
+    ];
+    chats.refresh();
+    return newChat;
+  }
+
+  void sendPersonalOfficialMessage({
+    required String userId,
+    required String text,
+    String? mediaUrl,
+  }) {
+    final chatId = 'telelite_support';
+    final nowTime =
+        '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}';
+
+    final officialMsg = Message(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      chatId: chatId,
+      senderName: 'TeleLite Official',
+      text: text.trim(),
+      time: nowTime,
+      isSentByMe: false,
+      isRead: false,
+      mediaUrl: mediaUrl,
+    );
+
+    if (chatMessages.containsKey(chatId)) {
+      chatMessages[chatId]!.add(officialMsg);
+      chatMessages.refresh();
+    } else {
+      chatMessages[chatId] = [officialMsg];
+    }
+
+    final index = chats.indexWhere((c) => c.id == chatId);
+    if (index != -1) {
+      final old = chats.removeAt(index);
+      chats.insert(
+        0,
+        old.copyWith(
+          lastMessage: text.trim().isNotEmpty ? text.trim() : '📷 Photo',
+          time: nowTime,
+          unreadCount: old.unreadCount + 1,
+        ),
+      );
+    }
+
+    NotificationService.showInAppNotification(
+      title: 'TeleLite Official Notice',
+      body: text,
+      avatarUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150',
+    );
+  }
+
+  void sendForceBroadcastMessage({
+    required String title,
+    required String body,
+    String? mediaUrl,
+  }) {
+    for (var chat in chats) {
+      final nowTime =
+          '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}';
+
+      final broadcastMsg = Message(
+        id: 'broadcast_${DateTime.now().millisecondsSinceEpoch}',
+        chatId: chat.id,
+        senderName: '📢 $title',
+        text: body,
+        time: nowTime,
+        isSentByMe: false,
+        mediaUrl: mediaUrl,
+      );
+
+      if (chatMessages.containsKey(chat.id)) {
+        chatMessages[chat.id]!.add(broadcastMsg);
+      } else {
+        chatMessages[chat.id] = [broadcastMsg];
+      }
+    }
+
+    chatMessages.refresh();
+
+    NotificationService().notify(
+      title: title,
+      body: body,
+      avatarUrl: mediaUrl,
+    );
+  }
+
   void updateGroupInfo(
     String chatId, {
     String? name,

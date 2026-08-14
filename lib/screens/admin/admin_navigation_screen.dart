@@ -4,8 +4,6 @@ import '../../controllers/telegram_controller.dart';
 import '../../theme/app_theme.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_notification_control_screen.dart';
-import 'admin_reports_screen.dart';
-import 'admin_users_screen.dart';
 
 class AdminNavigationScreen extends StatefulWidget {
   const AdminNavigationScreen({super.key});
@@ -19,16 +17,12 @@ class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
 
   final List<Widget> _pages = const [
     AdminDashboardScreen(),
-    AdminUsersScreen(),
-    AdminReportsScreen(),
     AdminNotificationControlScreen(),
   ];
 
   final List<Map<String, dynamic>> _navItems = const [
-    {'title': 'Dashboard', 'icon': Icons.dashboard_rounded},
-    {'title': 'User Management', 'icon': Icons.people_alt_rounded},
-    {'title': 'Content Moderation', 'icon': Icons.report_problem_rounded},
-    {'title': 'Notifications & Bot', 'icon': Icons.notifications_active_rounded},
+    {'title': '1. User Count & Stats', 'icon': Icons.people_alt_rounded},
+    {'title': '2. Force Broadcast (With Photo)', 'icon': Icons.campaign_rounded},
   ];
 
   @override
@@ -64,15 +58,7 @@ class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
             tooltip: 'Toggle Theme',
             onPressed: () => controller.toggleTheme(),
           ),
-          const SizedBox(width: 8),
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundColor: TeleTheme.primary.withAlpha(40),
-              child: const Icon(Icons.person, color: TeleTheme.primary, size: 20),
-            ),
-          ),
+          const SizedBox(width: 12),
         ],
       ),
       drawer: isDesktop
@@ -85,7 +71,7 @@ class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
           // Sidebar Drawer for Desktop view
           if (isDesktop)
             Container(
-              width: 250,
+              width: 280,
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF151D2A) : Colors.grey[50],
                 border: Border(
@@ -113,7 +99,7 @@ class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Text(
-            'ADMINISTRATION',
+            'TELELITE ADMIN CONTROLS',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
@@ -164,7 +150,7 @@ class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
 
         const Divider(height: 32),
 
-        // Telegram Bot Quick Status Badge
+        // Telegram Bot Guardian Badge
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 8),
           padding: const EdgeInsets.all(12),
@@ -189,7 +175,7 @@ class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
                           color: Colors.blue),
                     ),
                     Text(
-                      '🟢 Webhook Active',
+                      '🟢 Bot API Connected',
                       style: TextStyle(fontSize: 10, color: Colors.green),
                     ),
                   ],
