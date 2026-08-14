@@ -330,19 +330,23 @@ class CallController extends GetxController {
   }
 
   Future<void> _initializeLocalStream(bool isVideo) async {
-    final constraints = {
-      'audio': true,
-      'video': isVideo
-          ? {
-              'facingMode': 'user',
-              'width': 1280,
-              'height': 720,
-              'frameRate': 30,
-            }
-          : false,
-    };
-
-    _localStream = await navigator.mediaDevices.getUserMedia(constraints);
+    try {
+      final constraints = {
+        'audio': true,
+        'video': isVideo ? true : false,
+      };
+      _localStream = await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (e) {
+      try {
+        // Fallback: Audio-only if video hardware/camera not found
+        final audioOnlyConstraints = {'audio': true, 'video': false};
+        _localStream =
+            await navigator.mediaDevices.getUserMedia(audioOnlyConstraints);
+      } catch (e2) {
+        // Fallback: Create empty stream if no physical mic or camera is attached
+        _localStream = await createLocalMediaStream('local_stream');
+      }
+    }
     localRenderer.srcObject = _localStream;
   }
 
