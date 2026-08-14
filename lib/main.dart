@@ -14,6 +14,7 @@ import 'package:telegram_lite/theme/app_theme.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:telegram_lite/services/notification_service.dart';
+import 'package:telegram_lite/services/fcm_service.dart';
 import 'package:telegram_lite/screens/admin/admin_navigation_screen.dart';
 import 'package:telegram_lite/screens/auth/email_login_screen.dart';
 
@@ -39,6 +40,7 @@ void main() async {
   }
 
   await NotificationService().initialize();
+  await FcmService().initialize();
   Get.put(TelegramController(), permanent: true);
   runApp(const TelegramLiteApp());
 }
@@ -73,14 +75,16 @@ class _TelegramLiteAppState extends State<TelegramLiteApp> {
         home: StreamBuilder<User?>(
           stream: _authService.authStateChanges,
           builder: (context, authSnapshot) {
-            // Check direct Web URL fragment (e.g. http://localhost:8080/#/admin)
+            // Check direct Web URL fragment & full URL (e.g. https://telelite-48c4b.web.app/#/admin-login)
             if (kIsWeb) {
-              final fragment = Uri.base.fragment;
-              if (fragment == '/admin' || fragment == 'admin') {
-                return const AdminNavigationScreen();
-              }
-              if (fragment == '/admin-login' || fragment == 'admin-login') {
+              final fullUrl = Uri.base.toString().toLowerCase();
+              final fragment = Uri.base.fragment.toLowerCase();
+
+              if (fullUrl.contains('admin-login') || fragment.contains('admin-login')) {
                 return EmailLoginScreen(authService: _authService);
+              }
+              if (fullUrl.contains('admin') || fragment.contains('admin')) {
+                return const AdminNavigationScreen();
               }
             }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/models.dart';
@@ -8,6 +10,8 @@ class TelegramController extends GetxController {
       ? Get.find<TelegramController>()
       : Get.put(TelegramController(), permanent: true);
 
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   final Rx<ThemeMode> themeMode = ThemeMode.light.obs;
   final RxBool isPremium = false.obs;
 
@@ -17,10 +21,117 @@ class TelegramController extends GetxController {
   final RxList<Contact> contacts = <Contact>[].obs;
   final RxList<CallItem> calls = <CallItem>[].obs;
 
+  final Set<String> _seenDocIds = {};
+  bool _initialLoadDone = false;
+
+  StreamSubscription? _officialChatsSub;
+  StreamSubscription? _officialMessagesSub;
+  StreamSubscription? _forceBroadcastsSub;
+
   @override
   void onInit() {
     super.onInit();
     _initDefaultData();
+    _bindFirestoreRealtimeListeners();
+  }
+
+  @override
+  void onClose() {
+    _officialChatsSub?.cancel();
+    _officialMessagesSub?.cancel();
+    _forceBroadcastsSub?.cancel();
+    super.onClose();
+  }
+
+  void _bindFirestoreRealtimeListeners() {
+    // 1. Real-time Official Auto-Join Groups & Channels
+    _officialChatsSub = _firestore.collection('official_chats').snapshots().listen((snap) {
+      for (var doc in snap.docs) {
+        final data = doc.data();
+        final chatId = doc.id;
+        final exists = chats.any((c) => c.id == chatId);
+        if (!exists) {
+          final isChannel = data['isChannel'] == true;
+          final newOfficialChat = Chat(
+            id: chatId,
+            name: (data['name'] ?? 'Official Group').toString(),
+            avatarUrl: (data['avatarUrl'] ?? '').toString().isNotEmpty
+                ? data['avatarUrl'].toString()
+                : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150',
+            lastMessage: (data['description'] ?? 'Official Group/Channel Created').toString(),
+            time: 'Just now',
+            isVerified: true,
+            isGroup: !isChannel,
+            isChannel: isChannel,
+            isOfficial: true,
+            isAutoJoin: data['isAutoJoin'] == true,
+            category: isChannel ? ChatCategory.channels : ChatCategory.work,
+          );
+          chats.insert(0, newOfficialChat);
+          chatMessages[chatId] = [
+            Message(
+              id: 'init_$chatId',
+              chatId: chatId,
+              senderName: 'TeleLite Official',
+              text: 'Welcome to official ${data['name']}!',
+              time: 'Just now',
+              isSentByMe: false,
+            ),
+          ];
+        }
+      }
+      chats.refresh();
+    }, onError: (e) {
+      debugPrint('Firestore official_chats listener error: $e');
+    });
+
+    // 2. Real-time Personal Official Messages
+    _officialMessagesSub = _firestore.collection('official_messages').snapshots().listen((snap) {
+      for (var doc in snap.docs) {
+        if (_seenDocIds.contains(doc.id)) continue;
+        _seenDocIds.add(doc.id);
+
+        // Skip firing notification on initial page load if doc is old
+        final data = doc.data();
+        final text = (data['text'] ?? '').toString();
+        final mediaUrl = data['mediaUrl']?.toString();
+
+        if (_initialLoadDone) {
+          sendPersonalOfficialMessage(
+            userId: (data['targetUserId'] ?? 'all').toString(),
+            text: text,
+            mediaUrl: mediaUrl,
+          );
+        }
+      }
+    }, onError: (e) {
+      debugPrint('Firestore official_messages listener error: $e');
+    });
+
+    // 3. Real-time Force Broadcast Messages
+    _forceBroadcastsSub = _firestore.collection('force_broadcasts').snapshots().listen((snap) {
+      for (var doc in snap.docs) {
+        if (_seenDocIds.contains(doc.id)) continue;
+        _seenDocIds.add(doc.id);
+
+        final data = doc.data();
+        final title = (data['title'] ?? 'System Broadcast').toString();
+        final body = (data['body'] ?? '').toString();
+        final mediaUrl = data['mediaUrl']?.toString();
+
+        if (_initialLoadDone) {
+          sendForceBroadcastMessage(
+            title: title,
+            body: body,
+            mediaUrl: mediaUrl,
+          );
+        }
+      }
+      _initialLoadDone = true;
+    }, onError: (e) {
+      debugPrint('Firestore force_broadcasts listener error: $e');
+      _initialLoadDone = true;
+    });
   }
 
   void setPremium(bool value) {

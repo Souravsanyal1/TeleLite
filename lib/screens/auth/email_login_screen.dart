@@ -53,14 +53,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
           colorText: Colors.white,
         );
 
-        // If super admin or admin email navigate to Admin Panel
-        if (email == 'kirito231411@gmail.com' ||
-            email.contains('admin') ||
-            email.endsWith('@admin.com')) {
-          Get.offAll(() => const AdminNavigationScreen());
-        } else {
-          Get.until((route) => route.isFirst);
-        }
+        Get.offAll(() => const AdminNavigationScreen());
       }
     } catch (e) {
       if (mounted) {

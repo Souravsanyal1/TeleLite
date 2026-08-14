@@ -285,8 +285,11 @@ class AdminService extends GetxController {
     required String channel,
     required String priority,
     required List<String> targetUserIds,
+    String? imageUrl,
+    String target = 'All',
   }) async {
     final count = targetUserIds.isEmpty ? users.length : targetUserIds.length;
+    final messageId = 'msg_${DateTime.now().millisecondsSinceEpoch}';
 
     // Real HTTP API call to Telegram Bot
     await TelegramBotService().broadcastAdminAlert(
@@ -307,11 +310,30 @@ class AdminService extends GetxController {
 
     logs.insert(0, log);
 
+    // Save document to admin_notifications collection in Firestore
+    try {
+      await _firestore.collection('admin_notifications').doc(messageId).set({
+        'title': title,
+        'body': body,
+        'imageUrl': imageUrl ?? '',
+        'target': target,
+        'createdAt': FieldValue.serverTimestamp(),
+        'sentBy': 'Super Admin',
+        'clickAction': 'FLUTTER_NOTIFICATION_CLICK',
+        'messageId': messageId,
+        'priority': priority.toLowerCase(),
+      });
+    } catch (e) {
+      debugPrint('Firestore admin_notifications save exception: $e');
+    }
+
     // Save REAL document to Firestore force_broadcasts collection
     try {
       await _firestore.collection('force_broadcasts').add({
+        'messageId': messageId,
         'title': title,
         'body': body,
+        'imageUrl': imageUrl ?? '',
         'channel': channel,
         'priority': priority,
         'targetCount': count,

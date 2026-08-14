@@ -16,6 +16,8 @@ import '../models/story_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 
+import 'force_message_inbox_screen.dart';
+
 class ChatsScreen extends StatefulWidget {
   final TelegramDataService dataService;
 
@@ -78,6 +80,16 @@ class _ChatsScreenState extends State<ChatsScreen> {
       appBar: AppBar(
         title: const Text('TeleLite'),
         toolbarHeight: 64,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none_rounded, size: 26),
+            tooltip: 'Notifications & Inbox',
+            onPressed: () {
+              Get.to(() => const ForceMessageInboxScreen());
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: CustomScrollView(
         slivers: [
